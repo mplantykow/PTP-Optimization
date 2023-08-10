@@ -26,6 +26,38 @@ class Range():
     def __iter__(self):
         yield self
 
+
+if ((config.metric != "MSE") and (config.metric != "RMSE") and (cofig.metric != "MAE")):
+    print("Specify one of the following metrics: MSE, RMSE, MAE")
+    exit()
+if (config.gen_population_size < 8):
+    print("Min population size: 8")
+    exit()
+if (config.gen_epochs < 1):
+    print("Min number of epochs: 1")
+    exit()
+if (config.gen_max_kp <= 0):
+    print("Max Kp must be greater than 0")
+    exit()
+if (config.gen_max_ki <= 0):
+    print("Max Ki must be greater than 0")
+    exit()
+if (config.gen_num_random < 0):
+    print("The number of randomly added creatures must be greater or equal to 0")
+    exit()
+if (config.gen_num_inherited < 0):
+    print("The number of inherited creatures must be greater or equal to 0")
+    exit()
+if (config.gen_num_repicated < 0):
+    print("Number of replicated creatures must be greater or equal to 0")
+    exit()
+if (config.gen_mutation_coef < 1):
+    print("Mutation coef must be greater or equal 1")
+    exit()
+if (config.gen_elite_size < 0):
+    print("Elite size must be greater or equal 0")
+    exit()
+
 #Validate interface
 adapterlist = os.listdir('/sys/class/net/')
 parser = argparse.ArgumentParser(description='Genetic algorithm for PID in PTP implementation')
