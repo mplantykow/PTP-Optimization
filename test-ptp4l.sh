@@ -39,11 +39,11 @@ done
 
 #Build the command
 
-CMD="ptp4l -i $interface -m -2 -l 7"
+CMD="ptp4l -i $interface -m -2 -s --tx_timestamp_timeout 100"
 DIR="ptp4l"
 [ -n $P_VAL ] && CMD=$CMD" --pi_proportional_const $P_VAL" DIR=$DIR"_P$P_VAL"
 [ -n $I_VAL ] && CMD=$CMD" --pi_integral_const $I_VAL" DIR=$DIR"_I$I_VAL"
-#[ -n $TIMEOUT ] && CMD="timeout $TIMEOUT $CMD"
+[ -n $TIMEOUT ] && CMD="timeout $TIMEOUT $CMD"
 CMD="$CMD > $DIR.log"
 
 if [[ -n "$VERBOSE" ]]
@@ -59,6 +59,6 @@ eval $CMD
 chmod 600 "$DIR.log"
 
 [[ ! -d "$DIR" && ! -L "$DIR" && ! -f "$DIR" ]] && mkdir $DIR
-python3 parse_ptp4l.py --input $DIR.log --plot
+python3 parse_ptp.py --input $DIR.log --plot
 mv $DIR.log $DIR
 mv test.png $DIR/$DIR.png
