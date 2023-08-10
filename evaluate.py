@@ -31,7 +31,7 @@ class Creature():
         self.Ki = new_Ki
 
     #Evaluate data using one of three metrics - MSE, RMSE, MAE
-    def evaluate_data(self, interface, t, metric, app):
+    def evaluate_data(self, interface, t, app):
 
         #Check if provided Kp and Ki are not repeated
         repeated_data = self.validate_data()
@@ -62,17 +62,17 @@ class Creature():
                     print(stripped_Master_offset[i])
 
             #Calculate MSE
-            if(metric==1):
+            if(config.metric=="MSE"):
                 if config.debug_level != 1:
                     print("Choosen metric: MSE")
                 rating = rate_data_MSE(stripped_Master_offset)
             #Calculate RMSE
-            elif(metric==2):
+            elif(config.metric=="RMSE"):
                 if configdebug_level != 1:
                     print("Choosen metric: RMSE")
                 rating = rate_data_RMSE(stripped_Master_offset)
             #Calculate MAE
-            elif(metric==3):
+            elif(config.metric=="MAE"):
                 if config.debug_level != 1:
                     print("Choosen metric: MAE")
                 rating = rate_data_MAE(stripped_Master_offset)

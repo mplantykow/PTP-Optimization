@@ -33,7 +33,6 @@ parser = argparse.ArgumentParser(description='Genetic algorithm for PID in PTP i
 #List of arguments
 parser.add_argument("--i", type=str, choices = adapterlist, help="Interface")
 parser.add_argument("--t", default=120, choices=range(1,9999), type=int, help="-t from PTP script", metavar="[1-9999]")
-parser.add_argument("--metric", default=1, choices=range(1,3), type=int, help="Metric type: 1 for MSE; 2 for RMSE; 3 for MAE", metavar="[1-3]")
 
 args = parser.parse_args()
 
@@ -79,7 +78,7 @@ for epoch in range(config.gen_epochs):
         new_kp = round(parent.Kp,2)
         new_ki = round(parent.Ki,2)
         parent.mutate(new_kp, new_ki)
-        parent.evaluate_data(args.i, args.t, args.metric, config.app)
+        parent.evaluate_data(args.i, args.t, config.app)
         score.append(parent.rating)
         i = i + 1
 
@@ -211,7 +210,7 @@ with open("ptp_optimization.log", "a") as f:
         f.write(f"Kp: {creature.Kp}, Ki: {creature.Ki}, Score: {creature.rating}\n")
 
 default = Creature(0.7,0.3)
-default.evaluate_data(args.i, args.t, args.metric, config.app)
+default.evaluate_data(args.i, args.t, config.app)
 
 with open("ptp_optimization.log", "a") as f:
     f.write(f"\n***************************************************************\n")
