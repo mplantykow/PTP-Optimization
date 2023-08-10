@@ -3,7 +3,7 @@
 debug_level = 1
 
 # Application
-app = "phc2sys"
+app = "ptp4l"
 
 ### [Genetic algorithm]
 # Initial population size

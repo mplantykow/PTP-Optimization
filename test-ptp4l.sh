@@ -57,6 +57,8 @@ fi
 
 eval $CMD
 chmod 600 "$DIR.log"
+cat "$DIR.log" | grep master\ offset > temp.log
+mv -f temp.log "$DIR.log"
 
 [[ ! -d "$DIR" && ! -L "$DIR" && ! -f "$DIR" ]] && mkdir $DIR
 python3 parse_ptp.py --input $DIR.log --plot

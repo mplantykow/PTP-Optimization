@@ -41,7 +41,7 @@ class Creature():
                 if(app == "phc2sys"):
                     subprocess.check_call(split('./test-phc2sys.sh -s %s -c CLOCK_REALTIME -P %s -I %s -t %s' % (str(interface), str(self.Kp), str(self.Ki), str(t))))
                 else:
-                    subprocess.check_call(split('./test-ptp4l.sh -i %s -P %s -I %s' % (str(interface), str(self.Kp), str(self.Ki))))
+                    subprocess.check_call(split('./test-ptp4l.sh -i %s -P %s -I %s -t %s' % (str(interface), str(self.Kp), str(self.Ki), str(t))))
             except subprocess.SubprocessError:
                 if(app == "phc2sys"):
                     print("Error calling phc2sys")
@@ -110,7 +110,10 @@ class Creature():
         with open(file_name, 'r') as read_file:
             for line in read_file:
                 splitted = line.split()
-                Master_offset.append(splitted[4])
+                if(app == "phc2sys"):
+                    Master_offset.append(splitted[4])
+                else:
+                    Master_offset.append(splitted[3])
 
         return Master_offset
 
