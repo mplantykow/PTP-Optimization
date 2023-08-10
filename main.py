@@ -70,7 +70,7 @@ for epoch in range(config.gen_epochs):
         new_kp = round(parent.Kp,2)
         new_ki = round(parent.Ki,2)
         parent.mutate(new_kp, new_ki)
-        parent.evaluate_data(args.i, args.t, args.metric)
+        parent.evaluate_data(args.i, args.t, args.metric, config.app)
         score.append(parent.rating)
         i = i + 1
 
@@ -196,7 +196,7 @@ with open("log.log", "a") as f:
         f.write(f"{population[index].Kp};{population[index].Ki};{score[index]}\n")
 
 default = Creature(0.7,0.3)
-default.evaluate_data(args.i, args.t, args.metric)
+default.evaluate_data(args.i, args.t, args.metric, config.app)
 
 with open("log.log", "a") as f:
     f.write("\nDefault setings:\n")

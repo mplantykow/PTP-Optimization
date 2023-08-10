@@ -31,18 +31,24 @@ class Creature():
         self.Ki = new_Ki
 
     #Evaluate data using one of three metrics - MSE, RMSE, MAE
-    def evaluate_data(self, interface, t, metric):
+    def evaluate_data(self, interface, t, metric, app):
 
         #Check if provided Kp and Ki are not repeated
         repeated_data = self.validate_data()
         if(repeated_data == 0):
             print("Correct data!")
             try:
-                subprocess.check_call(split('./test-phc2sys.sh -s %s -c CLOCK_REALTIME -P %s -I %s -t %s' % (str(interface), str(self.Kp), str(self.Ki), str(t)))) #nosec
+                if(app == "phc2sys"):
+                    subprocess.check_call(split('./test-phc2sys.sh -s %s -c CLOCK_REALTIME -P %s -I %s -t %s' % (str(interface), str(self.Kp), str(self.Ki), str(t))))
+                else:
+                    subprocess.check_call(split('./test-ptp4l.sh -i %s -P %s -I %s' % (str(interface), str(self.Kp), str(self.Ki))))
             except subprocess.SubprocessError:
-                print("Error calling phc2sys")
+                if(app == "phc2sys"):
+                    print("Error calling phc2sys")
+                else:
+                    print("Error calling ptp4l")
                 sys.exit()
-            self.get_data_from_file()
+            self.get_data_from_file(app)
 
             i = 0
             if config.debug_level != 1:
@@ -94,9 +100,13 @@ class Creature():
         return 0
 
     #Get master offset from file
-    def get_data_from_file(self):
+    def get_data_from_file(self, app):
         Master_offset.clear()
-        file_name = "phc2sys_P%s_I%s/phc2sys_P%s_I%s.log" % (str(self.Kp), str(self.Ki), str(self.Kp), str(self.Ki))
+        if(app == "phc2sys"):
+            file_name = "phc2sys_P%s_I%s/phc2sys_P%s_I%s.log" % (str(self.Kp), str(self.Ki), str(self.Kp), str(self.Ki))
+        else:
+            file_name = "ptp4l_P%s_I%s/ptp4l_P%s_I%s.log" % (str(self.Kp), str(self.Ki), str(self.Kp), str(self.Ki))
+
         with open(file_name, 'r') as read_file:
             for line in read_file:
                 splitted = line.split()

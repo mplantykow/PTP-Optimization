@@ -2,6 +2,9 @@
 # Debug level: 1 for basic, 2 for full logging
 debug_level = 1
 
+# Application
+app = "phc2sys"
+
 ### [Genetic algorithm]
 # Initial population size
 gen_population_size = 8
