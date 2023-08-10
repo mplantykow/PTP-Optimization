@@ -1,7 +1,7 @@
 ### [General settings]
 # Debug level: 1 for basic, 2 for full logging
 debug_level = 1
-# Application
+# Application: ptp4l, phc2sys
 app = "ptp4l"
 # Metric: MSE, RMSE, MAE
 metric = "MSE"

@@ -78,7 +78,7 @@ for epoch in range(config.gen_epochs):
         new_kp = round(parent.Kp,2)
         new_ki = round(parent.Ki,2)
         parent.mutate(new_kp, new_ki)
-        parent.evaluate_data(args.i, args.t, config.app)
+        parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
         i = i + 1
 
@@ -210,7 +210,7 @@ with open("ptp_optimization.log", "a") as f:
         f.write(f"Kp: {creature.Kp}, Ki: {creature.Ki}, Score: {creature.rating}\n")
 
 default = Creature(0.7,0.3)
-default.evaluate_data(args.i, args.t, config.app)
+default.evaluate_data(args.i, args.t)
 
 with open("ptp_optimization.log", "a") as f:
     f.write(f"\n***************************************************************\n")
