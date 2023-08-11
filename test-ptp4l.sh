@@ -39,7 +39,7 @@ done
 
 #Build the command
 
-CMD="ptp4l -i $interface -m -2 -s --tx_timestamp_timeout 100"
+CMD="phc_ctl $interface set freq 0 && ptp4l -i $interface -m -2 -s --tx_timestamp_timeout 100"
 DIR="ptp4l"
 [ -n $P_VAL ] && CMD=$CMD" --pi_proportional_const $P_VAL" DIR=$DIR"_P$P_VAL"
 [ -n $I_VAL ] && CMD=$CMD" --pi_integral_const $I_VAL" DIR=$DIR"_I$I_VAL"
