@@ -5,6 +5,7 @@
 # You may obtain a copy of the License at
 #     https://spdx.org/licenses/GPL-2.0-or-later.html
 
+import sys
 import random
 import numpy
 import subprocess #nosec
@@ -42,6 +43,9 @@ elite = []
 
 print("Creating initial population...")
 
+if (config.gen_mutation_coef > 1 or config.gen_mutation_coef < -1):
+    sys.exit("Improper mutation coefficient in the config file")
+
 for _ in range(config.gen_population_size):
     population.append(Creature(random.uniform(0, config.gen_max_kp), random.uniform(0, config.gen_max_ki))) #nosec
 
@@ -54,6 +58,11 @@ if (config.debug_level != 1):
         print(creature.Kp)
         print(creature.Ki)
         iter = iter + 1
+
+with open("ptp_optimization.log", "a") as f:
+        f.write(f"***************************************************************\n")
+        f.write(f"Genetic algorithm results:\n")
+        os.chmod("ptp_optimization.log", 0o600);
 
 for epoch in range(config.gen_epochs):
     print("***************************************************************")
@@ -82,9 +91,12 @@ for epoch in range(config.gen_epochs):
     #Pick the best result and save it to the file
     index = sorted_scores_indexes[0]
 
-    with open("log.log", "a") as f:
-        f.write(f"{population[index].Kp};{population[index].Ki};{score[index]}\n")
-        os.chmod("log.log", 0o600)
+    with open("ptp_optimization.log", "a") as f:
+        f.write(f"Epoch number: {epoch}\n")
+        f.write(f"Kp: {population[index].Kp} ")
+        f.write(f"Ki: {population[index].Ki} ")
+        f.write(f"Score: {score[index]}\n")
+        os.chmod("ptp_optimization.log", 0o600)
 
     print("Sorted Scores indexes: ", sorted_scores_indexes)
 
@@ -186,18 +198,23 @@ for epoch in range(config.gen_epochs):
     print("***************************************************************")
     print("Progress: ", progress/epoch_progress * 100, "%")
     print("***************************************************************")
+
     #Switching generations
     population = new_generation
 
-with open("log.log", "a") as f:
-    f.write("\nElite:\n")
-    os.chmod("log.log", 0o600)
+
+with open("ptp_optimization.log", "a") as f:
+    f.write(f"\n***************************************************************\n")
+    f.write("Genetic algorithm best results:\n")
+    os.chmod("ptp_optimization.log", 0o600)
     for creature in elite:
-        f.write(f"{population[index].Kp};{population[index].Ki};{score[index]}\n")
+        f.write(f"Kp: {creature.Kp}, Ki: {creature.Ki}, Score: {creature.rating}\n")
 
 default = Creature(0.7,0.3)
 default.evaluate_data(args.i, args.t, args.metric, config.app)
 
-with open("log.log", "a") as f:
-    f.write("\nDefault setings:\n")
-    f.write(f"{population[index].Kp};{population[index].Ki};{score[index]}\n")
+with open("ptp_optimization.log", "a") as f:
+    f.write(f"\n***************************************************************\n")
+    f.write("Default settings results:\n")
+    f.write(f"Kp: {default.Kp}, Ki: {default.Ki}, Score: {default.rating}\n")
+    os.chmod("ptp_optimization.log", 0o600)
