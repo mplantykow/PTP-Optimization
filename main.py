@@ -26,6 +26,38 @@ class Range():
     def __iter__(self):
         yield self
 
+
+if ((config.metric != "MSE") and (config.metric != "RMSE") and (cofig.metric != "MAE")):
+    print("Specify one of the following metrics: MSE, RMSE, MAE")
+    exit()
+if (config.gen_population_size < 8):
+    print("Min population size: 8")
+    exit()
+if (config.gen_epochs < 1):
+    print("Min number of epochs: 1")
+    exit()
+if (config.gen_max_kp <= 0):
+    print("Max Kp must be greater than 0")
+    exit()
+if (config.gen_max_ki <= 0):
+    print("Max Ki must be greater than 0")
+    exit()
+if (config.gen_num_random < 0):
+    print("The number of randomly added creatures must be greater or equal to 0")
+    exit()
+if (config.gen_num_inherited < 0):
+    print("The number of inherited creatures must be greater or equal to 0")
+    exit()
+if (config.gen_num_repicated < 0):
+    print("Number of replicated creatures must be greater or equal to 0")
+    exit()
+if (config.gen_mutation_coef < 1):
+    print("Mutation coef must be greater or equal 1")
+    exit()
+if (config.gen_elite_size < 0):
+    print("Elite size must be greater or equal 0")
+    exit()
+
 #Validate interface
 adapterlist = os.listdir('/sys/class/net/')
 parser = argparse.ArgumentParser(description='Genetic algorithm for PID in PTP implementation')
@@ -33,7 +65,6 @@ parser = argparse.ArgumentParser(description='Genetic algorithm for PID in PTP i
 #List of arguments
 parser.add_argument("--i", type=str, choices = adapterlist, help="Interface")
 parser.add_argument("--t", default=120, choices=range(1,9999), type=int, help="-t from PTP script", metavar="[1-9999]")
-parser.add_argument("--metric", default=1, choices=range(1,3), type=int, help="Metric type: 1 for MSE; 2 for RMSE; 3 for MAE", metavar="[1-3]")
 
 args = parser.parse_args()
 
@@ -79,7 +110,7 @@ for epoch in range(config.gen_epochs):
         new_kp = round(parent.Kp,2)
         new_ki = round(parent.Ki,2)
         parent.mutate(new_kp, new_ki)
-        parent.evaluate_data(args.i, args.t, args.metric, config.app)
+        parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
         i = i + 1
 
@@ -211,7 +242,7 @@ with open("ptp_optimization.log", "a") as f:
         f.write(f"Kp: {creature.Kp}, Ki: {creature.Ki}, Score: {creature.rating}\n")
 
 default = Creature(0.7,0.3)
-default.evaluate_data(args.i, args.t, args.metric, config.app)
+default.evaluate_data(args.i, args.t)
 
 with open("ptp_optimization.log", "a") as f:
     f.write(f"\n***************************************************************\n")

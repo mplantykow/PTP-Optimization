@@ -31,24 +31,24 @@ class Creature():
         self.Ki = new_Ki
 
     #Evaluate data using one of three metrics - MSE, RMSE, MAE
-    def evaluate_data(self, interface, t, metric, app):
+    def evaluate_data(self, interface, t):
 
         #Check if provided Kp and Ki are not repeated
         repeated_data = self.validate_data()
         if(repeated_data == 0):
             print("Correct data!")
             try:
-                if(app == "phc2sys"):
+                if(config.app == "phc2sys"):
                     subprocess.check_call(split('./test-phc2sys.sh -s %s -c CLOCK_REALTIME -P %s -I %s -t %s' % (str(interface), str(self.Kp), str(self.Ki), str(t))))
-                else:
+                elif (config.app == "ptp4l"):
                     subprocess.check_call(split('./test-ptp4l.sh -i %s -P %s -I %s -t %s' % (str(interface), str(self.Kp), str(self.Ki), str(t))))
             except subprocess.SubprocessError:
-                if(app == "phc2sys"):
+                if(config.app == "phc2sys"):
                     print("Error calling phc2sys")
-                else:
+                elif (config.app == "ptp4l"):
                     print("Error calling ptp4l")
                 sys.exit()
-            self.get_data_from_file(app)
+            self.get_data_from_file()
 
             i = 0
             if config.debug_level != 1:
@@ -62,17 +62,17 @@ class Creature():
                     print(stripped_Master_offset[i])
 
             #Calculate MSE
-            if(metric==1):
+            if(config.metric=="MSE"):
                 if config.debug_level != 1:
                     print("Choosen metric: MSE")
                 rating = rate_data_MSE(stripped_Master_offset)
             #Calculate RMSE
-            elif(metric==2):
+            elif(config.metric=="RMSE"):
                 if configdebug_level != 1:
                     print("Choosen metric: RMSE")
                 rating = rate_data_RMSE(stripped_Master_offset)
             #Calculate MAE
-            elif(metric==3):
+            elif(config.metric=="MAE"):
                 if config.debug_level != 1:
                     print("Choosen metric: MAE")
                 rating = rate_data_MAE(stripped_Master_offset)
@@ -100,19 +100,19 @@ class Creature():
         return 0
 
     #Get master offset from file
-    def get_data_from_file(self, app):
+    def get_data_from_file(self):
         Master_offset.clear()
-        if(app == "phc2sys"):
+        if(config.app == "phc2sys"):
             file_name = "phc2sys_P%s_I%s/phc2sys_P%s_I%s.log" % (str(self.Kp), str(self.Ki), str(self.Kp), str(self.Ki))
-        else:
+        elif (config.app == "ptp4l"):
             file_name = "ptp4l_P%s_I%s/ptp4l_P%s_I%s.log" % (str(self.Kp), str(self.Ki), str(self.Kp), str(self.Ki))
 
         with open(file_name, 'r') as read_file:
             for line in read_file:
                 splitted = line.split()
-                if(app == "phc2sys"):
+                if(config.app == "phc2sys"):
                     Master_offset.append(splitted[4])
-                else:
+                elif (config.ap == "ptp4l"):
                     Master_offset.append(splitted[3])
 
         return Master_offset
