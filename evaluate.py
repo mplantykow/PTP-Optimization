@@ -112,7 +112,7 @@ class Creature():
                 splitted = line.split()
                 if(config.app == "phc2sys"):
                     Master_offset.append(splitted[4])
-                elif (config.ap == "ptp4l"):
+                elif (config.app == "ptp4l"):
                     Master_offset.append(splitted[3])
 
         return Master_offset

@@ -89,7 +89,7 @@ if (config.gen_num_random < 0):
 if (config.gen_num_inherited < 0):
     print("The number of inherited creatures must be greater or equal to 0")
     exit()
-if (config.gen_num_repicated < 0):
+if (config.gen_num_replicated < 0):
     print("Number of replicated creatures must be greater or equal to 0")
     exit()
 if (config.gen_mutation_coef < 1):
