@@ -26,6 +26,47 @@ class Range():
     def __iter__(self):
         yield self
 
+def validate_stability(Kp, Ki):
+    eq1 = (((Kp + Ki)*(Kp + Ki)) < (4*Ki))
+    eq2 = ((Ki >= 0) and (Ki <= 4))
+    eq3 = ((Kp >= 0) and (Kp <= 1))
+    if eq1 and eq2 and eq3:
+        return True
+    else:
+        return False
+
+def draw_stable_kp_ki():
+    stable = False
+    while not stable:
+        Kp = random.uniform(0, config.gen_max_kp_stable)
+        Ki = random.uniform(0, config.gen_max_ki_stable)
+        if validate_stability(Kp, Ki):
+            stable = True
+    return Kp, Ki
+
+def redefine_kp_ki_to_stable(Kp, Ki):
+    if validate_stability(Kp, Ki):
+        return Kp, Ki
+    with open("stability.csv", "a") as f:
+        os.chmod("stability.csv", 0o600)
+    stable = False
+    while not stable:
+        with open("stability.csv", "a") as f:
+            f.write(f"{Ki};{Kp}\n")
+        if Ki < 1:
+            Ki = Ki + (1 - Ki) * config.reduction_determinant
+        if Ki > 1:
+            Ki = Ki - (Ki - 1) * config.reduction_determinant
+        if Ki == 0:
+            Ki = Ki + config.reduction_determinant
+        if Kp == 0:
+            Kp = Kp + config.reduction_determinant
+        Kp = Kp - config.reduction_determinant * Kp
+        Ki = round(Ki, 3)
+        Kp = round(Kp, 3)
+        if validate_stability(Kp, Ki):
+            stable = True
+    return Kp, Ki
 
 if ((config.metric != "MSE") and (config.metric != "RMSE") and (cofig.metric != "MAE")):
     print("Specify one of the following metrics: MSE, RMSE, MAE")
@@ -68,6 +109,9 @@ parser.add_argument("--t", default=120, choices=range(1,9999), type=int, help="-
 
 args = parser.parse_args()
 
+if (config.stability_verification == True):
+    print("Stability verification enabled")
+
 #Initial population
 population = []
 elite = []
@@ -78,7 +122,11 @@ if (config.gen_mutation_coef > 1 or config.gen_mutation_coef < -1):
     sys.exit("Improper mutation coefficient in the config file")
 
 for _ in range(config.gen_population_size):
-    population.append(Creature(random.uniform(0, config.gen_max_kp), random.uniform(0, config.gen_max_ki))) #nosec
+    if (config.stability_verification == True):
+        Kp,Ki = draw_stable_kp_ki()
+        population.append(Creature(Kp,Ki))
+    else:
+        population.append(Creature(random.uniform(0, config.gen_max_kp), random.uniform(0, config.gen_max_ki))) #nosec
 
 iter = 0
 print("Initial population created!")
@@ -110,6 +158,8 @@ for epoch in range(config.gen_epochs):
         new_kp = round(parent.Kp,2)
         new_ki = round(parent.Ki,2)
         parent.mutate(new_kp, new_ki)
+        print("Kp: ", Kp)
+        print("Ki: ", Ki)
         parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
         i = i + 1
@@ -152,10 +202,21 @@ for epoch in range(config.gen_epochs):
         y = x + 1
         for _ in range(config.gen_num_inherited - x - 1):
             print(x, " + ", y)
-            new_generation.append(
-                Creature(population[sorted_scores_indexes[x]].Kp, population[sorted_scores_indexes[y]].Ki))
-            new_generation.append(
-                Creature(population[sorted_scores_indexes[y]].Kp, population[sorted_scores_indexes[x]].Ki))
+            if (config.stability_verification):
+                print("Veryfing parent stability")
+                if (validate_stability(population[sorted_scores_indexes[x]].Kp, population[sorted_scores_indexes[y]].Ki)):
+                    new_generation.append(Creature(population[sorted_scores_indexes[x]].Kp, population[sorted_scores_indexes[y]].Ki))
+                else:
+                    Kp, Ki = redefine_kp_ki_to_stable(population[sorted_scores_indexes[x]].Kp, population[sorted_scores_indexes[y]].Ki)
+                    new_generation.append(Creature(Kp, Ki))
+                if (validate_stability(population[sorted_scores_indexes[y]].Kp, population[sorted_scores_indexes[x]].Ki)):
+                    new_generation.append(Creature(population[sorted_scores_indexes[x]].Kp, population[sorted_scores_indexes[y]].Ki))
+                else:
+                    Kp, Ki = redefine_kp_ki_to_stable(population[sorted_scores_indexes[y]].Kp, population[sorted_scores_indexes[x]].Ki)
+                    new_generation.append(Creature(Kp, Ki))
+            else:
+                new_generation.append(Creature(population[sorted_scores_indexes[x]].Kp, population[sorted_scores_indexes[y]].Ki))
+                new_generation.append(Creature(population[sorted_scores_indexes[y]].Kp, population[sorted_scores_indexes[x]].Ki))
             y = y + 1
         x = x + 1
     print("New generation creation - crossed creatures added!")
@@ -189,7 +250,11 @@ for epoch in range(config.gen_epochs):
     #Adding randoms
     print("Adding new random parents")
     for _ in range(config.gen_num_random):
-        new_generation.append(Creature(random.uniform(0, config.gen_max_kp), random.uniform(0, config.gen_max_ki))) #nosec
+        if (config.stability_verification == True):
+            Kp,Ki = draw_stable_kp_ki()
+            new_generation.append(Creature(Kp,Ki))
+        else:
+            new_generation.append(Creature(random.uniform(0, config.gen_max_kp), random.uniform(0, config.gen_max_ki))) #nosec
 
     print("New generation creation - random creatures added!")
     if config.debug_level != 1:
@@ -212,6 +277,8 @@ for epoch in range(config.gen_epochs):
         rand_y = random.uniform(-1, 1) #nosec
         new_ki = creature.Ki + (rand_y * config.gen_mutation_coef)
         new_ki = max(0, min(new_ki, config.gen_max_ki))
+        if not validate_stability(new_kp, new_ki):
+            new_kp, new_ki = redefine_kp_ki_to_stable(new_kp, new_ki)
         creature.mutate(new_kp, new_ki)
     print("Mutation finished!")
     if config.debug_level != 1:
