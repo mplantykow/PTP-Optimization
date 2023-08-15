@@ -158,8 +158,8 @@ for epoch in range(config.gen_epochs):
         new_kp = round(parent.Kp,2)
         new_ki = round(parent.Ki,2)
         parent.mutate(new_kp, new_ki)
-        print("Kp: ", Kp)
-        print("Ki: ", Ki)
+        print("Kp: ", new_kp)
+        print("Ki: ", new_ki)
         parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
         i = i + 1
