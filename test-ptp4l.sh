@@ -14,7 +14,9 @@ do
 	-P) P_VAL="$2"; shift ;;
 	-I) I_VAL="$2"; shift ;;
 	-c|--cut_first) CUT=$2; shift;;
+	-o|--offset_threshold) THRESHOLD=$2; shift;;
 	-v|--verbose) VERBOSE=1 ;;
+	-f) CFG_FILE="$2"; shift;;
 	*) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -43,9 +45,11 @@ eval $RES_CLK
 
 CMD="ptp4l -i $interface -m -2 -s --tx_timestamp_timeout 100"
 DIR="ptp4l"
-[ -n $P_VAL ] && CMD=$CMD" --pi_proportional_const $P_VAL" DIR=$DIR"_P$P_VAL"
-[ -n $I_VAL ] && CMD=$CMD" --pi_integral_const $I_VAL" DIR=$DIR"_I$I_VAL"
-[ -n $TIMEOUT ] && CMD="timeout $TIMEOUT $CMD"
+[ ! -z $P_VAL ] && CMD=$CMD" --pi_proportional_const $P_VAL" DIR=$DIR"_P$P_VAL"
+[ ! -z $I_VAL ] && CMD=$CMD" --pi_integral_const $I_VAL" DIR=$DIR"_I$I_VAL"
+[ ! -z $THRESHOLD ] && CMD=$CMD" --servo_offset_threshold $THRESHOLD"
+[ ! -z $CFG_FILE ] && CMD=$CMD" -f $CFG_FILE"
+[ ! -z $TIMEOUT ] && CMD="timeout $TIMEOUT $CMD"
 CMD="$CMD > $DIR.log"
 
 if [[ -n "$VERBOSE" ]]
@@ -67,9 +71,16 @@ then
 	eval $CMD
 	sed -i '0,/s2/{s/s2/s0/}' temp.log
 fi
+if [[ -n "$THRESHOLD" ]]
+then
+cp -f temp.log "$DIR.log"
+cat "$DIR.log" | grep s3 > temp.log
+mv -f temp.log "$DIR-stable.log"
+else
 mv -f temp.log "$DIR.log"
+fi
 
 [[ ! -d "$DIR" && ! -L "$DIR" && ! -f "$DIR" ]] && mkdir $DIR
 python3 parse_ptp.py --input $DIR.log --plot
-mv $DIR.log $DIR
+mv $DIR*.log $DIR
 mv test.png $DIR/$DIR.png
