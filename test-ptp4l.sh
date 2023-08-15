@@ -13,8 +13,8 @@ do
 	-i) interface="$2"; shift ;;
 	-P) P_VAL="$2"; shift ;;
 	-I) I_VAL="$2"; shift ;;
+	-c|--cut_first) CUT=$2; shift;;
 	-v|--verbose) VERBOSE=1 ;;
-	-o|--offset) OFFSET=$2; shift;;
 	*) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -60,6 +60,13 @@ fi
 eval $CMD
 chmod 600 "$DIR.log"
 cat "$DIR.log" | grep master\ offset > temp.log
+if [[ -n "$CUT" ]]
+then
+	CMD="sed -i '1,$CUT d' temp.log"
+	echo "CMD: $CMD"
+	eval $CMD
+	sed -i '0,/s2/{s/s2/s0/}' temp.log
+fi
 mv -f temp.log "$DIR.log"
 
 [[ ! -d "$DIR" && ! -L "$DIR" && ! -f "$DIR" ]] && mkdir $DIR
