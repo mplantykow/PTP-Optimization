@@ -14,9 +14,9 @@ from matplotlib import pyplot as plt
 
 def parse_ptp4l_out(line):
     # journalctl -u ptp4l.service
-    # pattern = '^(.+)ptp4l\[[0-9]+\]: \[(.+)\] master offset\s+(-?[0-9]+) s([012]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
+    # pattern = '^(.+)ptp4l\[[0-9]+\]: \[(.+)\] master offset\s+(-?[0-9]+) s([0123]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
     # standard ptp4l.log
-    pattern = r'^ptp4l\[(\d+).(\d+)\]: master offset\s+(-?[0-9]+) s([012]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
+    pattern = r'^ptp4l\[(\d+).(\d+)\]: master offset\s+(-?[0-9]+) s([0123]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
     # https://regexr.com/
 
     # Regex search
@@ -41,7 +41,7 @@ def parse_phc2sys_out(line):
     # pattern = '^(.+)ptp4l\[[0-9]+\]: \[(.+)\] master offset\s+(-?[0-9]+) s([012]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
     # standard phc2sys.log:
     # phc2sys[689991.253]: CLOCK_REALTIME phc offset        33 s2 freq   -5355 delay    603
-    pattern = '^phc2sys\[(\d+).(\d+)\]:\s+(\S+)\s+(\S+) offset\s+(-?[0-9]+) s([012]) freq\s+([+-]\d+) delay\s+(-?\d+)'
+    pattern = '^phc2sys\[(\d+).(\d+)\]:\s+(\S+)\s+(\S+) offset\s+(-?[0-9]+) s([0123]) freq\s+([+-]\d+) delay\s+(-?\d+)'
     # https://regexr.com/
 
     # Regex search
@@ -65,7 +65,7 @@ def filter_stable(arr):
     filter = []
 
     for element in arr:
-        if element[2] == 2:
+        if element[2] == 2 or element[2] == 3:
             filter.append(True)
         else:
             filter.append(False)
@@ -154,7 +154,7 @@ def parse_file(filename, normalize=0):
         if (state == 1):
             continue
 
-        if (state == 2):
+        if (state == 2 or state == 3):
             try:
                 start_delay
             except NameError:
