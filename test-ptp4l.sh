@@ -40,7 +40,7 @@ done
 #	./clearadj/clearadj
 
 #Build the command
-RES_CLK="phc_ctl $interface set freq 0"
+RES_CLK="phc_ctl $interface set freq 0 > /dev/null"
 eval $RES_CLK
 
 CMD="ptp4l -i $interface -m -2 -s --tx_timestamp_timeout 100"
