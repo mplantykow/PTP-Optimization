@@ -68,7 +68,7 @@ class Creature():
                 rating = rate_data_MSE(stripped_Master_offset)
             #Calculate RMSE
             elif(config.metric=="RMSE"):
-                if configdebug_level != 1:
+                if config.debug_level != 1:
                     print("Choosen metric: RMSE")
                 rating = rate_data_RMSE(stripped_Master_offset)
             #Calculate MAE
