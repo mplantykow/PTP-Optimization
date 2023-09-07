@@ -28,8 +28,8 @@ class Range():
 
 def validate_stability(Kp, Ki):
     eq1 = (((Kp + Ki)*(Kp + Ki)) < (4*Ki))
-    eq2 = ((Ki >= 0) and (Ki <= 4))
-    eq3 = ((Kp >= 0) and (Kp <= 1))
+    eq2 = ((Ki > 0) and (Ki <= 4))
+    eq3 = ((Kp > 0) and (Kp <= 1))
     if eq1 and eq2 and eq3:
         return True
     else:
@@ -68,7 +68,7 @@ def redefine_kp_ki_to_stable(Kp, Ki):
             stable = True
     return Kp, Ki
 
-if ((config.metric != "MSE") and (config.metric != "RMSE") and (cofig.metric != "MAE")):
+if ((config.metric != "MSE") and (config.metric != "RMSE") and (config.metric != "MAE")):
     print("Specify one of the following metrics: MSE, RMSE, MAE")
     exit()
 if (config.gen_population_size < 8):
@@ -177,6 +177,11 @@ for epoch in range(config.gen_epochs):
         f.write(f"Kp: {population[index].Kp} ")
         f.write(f"Ki: {population[index].Ki} ")
         f.write(f"Score: {score[index]}\n")
+        #Uncomment to print all scores to the file
+        #for i in range(0, len(score)):
+        #    f.write(f"Kp: {population[i].Kp} ")
+        #    f.write(f"Ki: {population[i].Ki} ")
+        #    f.write(f"Test {i} Score: {score[i]}\n")
         os.chmod("ptp_optimization.log", 0o600)
 
     print("Sorted Scores indexes: ", sorted_scores_indexes)
