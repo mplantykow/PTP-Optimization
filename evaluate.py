@@ -52,7 +52,7 @@ class Creature():
 
             i = 0
             if config.debug_level != 1:
-                for i in enumerate(Master_offset):
+                for i in range(len(Master_offset)):
                     print(Master_offset[i])
 
             stripped_Master_offset = Master_offset[2::]

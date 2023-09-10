@@ -121,10 +121,15 @@ def parse_file(filename, normalize=0):
     with open(args.input, 'r') as file1:
         Lines = file1.readlines()
 
-    if (Lines[0].startswith("phc2sys")):
-        file_type = 1
+    if (Lines):
+        if (Lines[0].startswith("phc2sys")):
+            file_type = 1
+        else:
+            file_type = 0
     else:
-        file_type = 0
+        #Handle the case where Lines is empty
+        print("The file is empty or Linex[0] does not exist")
+        sys.exit()
 
     for line in Lines:
         if (file_type):

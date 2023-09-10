@@ -122,7 +122,10 @@ if (config.gen_mutation_coef > 1 or config.gen_mutation_coef < -1):
     sys.exit("Improper mutation coefficient in the config file")
 
 for _ in range(config.gen_population_size):
-    if (config.stability_verification == True):
+    if (config.initial_values == True):
+        Kp = config.initial_kp
+        Ki = config_initial_ki
+    elif (config.stability_verification == True):
         Kp,Ki = draw_stable_kp_ki()
         population.append(Creature(Kp,Ki))
     else:
@@ -155,8 +158,8 @@ for epoch in range(config.gen_epochs):
     i = 0
     for parent in population:
         print("Evaluating creature number ", i)
-        new_kp = round(parent.Kp,2)
-        new_ki = round(parent.Ki,2)
+        new_kp = round(parent.Kp,3)
+        new_ki = round(parent.Ki,3)
         parent.mutate(new_kp, new_ki)
         print("Kp: ", new_kp)
         print("Ki: ", new_ki)
