@@ -11,6 +11,7 @@ import os
 import sys
 import numpy as np
 from matplotlib import pyplot as plt
+import warnings
 
 def parse_ptp4l_out(line):
     # journalctl -u ptp4l.service
@@ -73,6 +74,7 @@ def filter_stable(arr):
     return arr[filter]
 
 def plot(array):
+    warnings.filterwarnings("ignore", category=UserWarning, module="pyplot")
     figure, axes = plt.subplots(nrows=3, ncols=1)
 
     array = filter_stable(array)
