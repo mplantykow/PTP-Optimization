@@ -74,7 +74,7 @@ def filter_stable(arr):
     return arr[filter]
 
 def plot(array):
-    warnings.filterwarnings("ignore", category=UserWarning, module="pyplot")
+    warnings.filterwarnings('ignore')
     figure, axes = plt.subplots(nrows=3, ncols=1)
 
     array = filter_stable(array)
