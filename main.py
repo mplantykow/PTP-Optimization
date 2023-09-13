@@ -116,6 +116,10 @@ if config.stability_verification is True:
 #Initial population
 population = []
 elite = []
+initial_values = False
+
+if config.initial_values is True:
+    initial_values = True
 
 print("Creating initial population...")
 
@@ -123,9 +127,13 @@ if (config.gen_mutation_coef > 1 or config.gen_mutation_coef < -1):
     sys.exit("Improper mutation coefficient in the config file")
 
 for _ in range(config.gen_population_size):
-    if config.initial_values is True:
+    if initial_values is True:
         k_p = config.initial_kp
         k_i = config.initial_ki
+        initial_values = False
+        population.append(Creature(k_p, k_i))
+        continue
+
     if config.stability_verification is True:
         k_p,k_i = draw_stable_kp_ki()
         population.append(Creature(k_p,k_i))
