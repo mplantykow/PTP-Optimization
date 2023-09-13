@@ -13,10 +13,12 @@ initial_kp = 0.3
 initial_ki = 0.7
 
 ### Servo stability verification
-# Stability verification
-stability_verification = True
+# Stability verification: Complex (Complex & stable), Real (Real & stable), False
+stability_verification = "Real"
 # Based on [1], it is advised to do not modify
-gen_max_kp_stable = 1
+gen_max_kp_stable_complex = 1
+# Based on [1], it is advised to do not modify
+gen_max_kp_stable_real = 2
 # Based on [1], it is advised to do not modify
 gen_max_ki_stable = 4
 # Kp and Ki reduction granularity in case of

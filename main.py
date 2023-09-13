@@ -29,18 +29,30 @@ class Range():
 
 def validate_stability(k_p, k_i):
     """Function validating stability."""
-    eq1 = (((k_p + k_i)*(k_p + k_i)) < (4*k_i))
-    eq2 = 0 <= k_i <= 4
-    eq3 = 0 <= k_p <= 1
-    if eq1 and eq2 and eq3:
-        return True
-    return False
+    if config.stability_verification == "Complex":
+        eq1 = (((k_p + k_i)*(k_p + k_i)) < (4*k_i))
+        eq2 = 0 <= k_i <= 4
+        eq3 = 0 <= k_p <= 1
+        if eq1 and eq2 and eq3:
+            return True
+        return False
+    if config.stability_verification == "Real":
+        eq1 = ((2*k_p) < (4 - k_i))
+        eq2 = 0 <= k_i <= 4
+        eq3 = 0 <= k_p <= 2
+        if eq1 and eq2 and eq3:
+            return True
+        return False
 
 def draw_stable_kp_ki():
     """Function drawing stable k_p and k_i pair."""
     stable = False
+    if config.stability_verification == "Complex":
+        gen_max_kp_stable = config.gen_max_kp_stable_complex
+    else:
+        gen_max_kp_stable = config.gen_max_kp_stable_real
     while not stable:
-        k_p = random.uniform(0, config.gen_max_kp_stable)
+        k_p = random.uniform(0, gen_max_kp_stable)
         k_i = random.uniform(0, config.gen_max_ki_stable)
         if validate_stability(k_p, k_i):
             stable = True
@@ -51,28 +63,47 @@ def redefine_kp_ki_to_stable(k_p, k_i):
     if validate_stability(k_p, k_i):
         return k_p,k_i
     stable = False
-    while not stable:
-        #Print stability related calculations to the file
-        if config.debug_level != 1:
-            with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
-                stabilityfile.write(f"{k_i};{k_p}\n")
-        if k_i < 1:
-            k_i = k_i + (1 - k_i) * config.reduction_determinant
-        if k_i > 1:
-            k_i = k_i - (k_i - 1) * config.reduction_determinant
-        if k_i == 0:
-            k_i = k_i + config.reduction_determinant
-        if k_p == 0:
-            k_p = k_p + config.reduction_determinant
-        k_p = k_p - config.reduction_determinant * k_p
-        k_i = round(k_i, 3)
-        k_p = round(k_p, 3)
-        if validate_stability(k_p, k_i):
-            stable = True
-    return k_p,k_i
+    if config.stability_verification == "Complex":
+        while not stable:
+            if config.debug_level != 1:
+                with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
+                    stabilityfile.write(f"{k_i};{k_p}\n")
+            if k_i < 1:
+                k_i = k_i + (1 - k_i) * config.reduction_determinant
+            if k_i > 1:
+                k_i = k_i - (k_i - 1) * config.reduction_determinant
+            if k_i == 0:
+                k_i = k_i + config.reduction_determinant
+            if k_p == 0:
+                k_p = k_p + config.reduction_determinant
+            k_p = k_p - (k_p * config.reduction_determinant)
+            k_i = round(k_i, 3)
+            k_p = round(k_p, 3)
+            if validate_stability(k_p, k_i):
+                stable = True
+        return k_p,k_i
+    if config.stability_verification == "Real":
+        while not stable:
+            if config.debug_level != 1:
+                with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
+                    stabilityfile.write(f"{k_i};{k_p}\n")
+            k_i = k_i - (k_i * config.reduction_determinant)
+            k_p = k_p - (k_p * config.reduction_determinant)
+            if k_i <= 0:
+                k_i = k_i + config.reduction_determinant
+            if k_p <= 0:
+                k_p = k_p + config.reduction_determinant
+            k_i = round(k_i, 3)
+            k_p = round(k_p, 3)
+            if validate_stability(k_p, k_i):
+                stable = True
+        return k_p,k_i
 
 if config.metric not in {"MSE", "RMSE", "MAE"}:
     print("Specify one of the following metrics: MSE, RMSE, MAE")
+    sys.exit()
+if config.stability_verification not in {"Complex", "Real", "False"}:
+    print("Specify one of the following options for stability verification: Complex, Real, False")
     sys.exit()
 if config.gen_population_size < 8:
     print("Min population size: 8")
