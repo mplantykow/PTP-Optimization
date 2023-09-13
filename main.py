@@ -10,6 +10,7 @@ import sys
 import random
 import os
 import argparse
+import time
 import numpy
 import configureme as config
 from evaluate import Creature
@@ -51,8 +52,10 @@ def redefine_kp_ki_to_stable(k_p, k_i):
         return k_p,k_i
     stable = False
     while not stable:
-        with open("stability.csv", "a", encoding="utf-8") as stabilityfile:
-            stabilityfile.write(f"{k_i};{k_p}\n")
+        #Print stability related calculations to the file
+        if config.debug_level != 1:
+            with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
+                stabilityfile.write(f"{k_i};{k_p}\n")
         if k_i < 1:
             k_i = k_i + (1 - k_i) * config.reduction_determinant
         if k_i > 1:
@@ -110,6 +113,35 @@ parser.add_argument("--t", default=120, choices=range(1,9999), type=int,
 
 args = parser.parse_args()
 
+#Pull date and time to use as log filename
+timestr = time.strftime("%Y%m%d-%H%M%S")
+
+#Define filenames
+csvfilename = str(config.app) + "_"  + timestr + ".csv"
+logfilename = str(config.app) + "_" + timestr + ".log"
+elitefilename = str(config.app) + "_" + timestr + "_elite.csv"
+stabilityfilename = str(config.app) + "_" + timestr + "_stability.log"
+
+#Add header to csvfilename
+with open(csvfilename, "a", encoding="utf-8") as csvfile:
+    csvfile.write("epoch,creature,k_p,k_i,rating\n")
+
+#Add header to elitefilename
+with open(elitefilename, "a", encoding="utf-8") as elitefile:
+    elitefile.write("epoch,k_p,k_i,rating\n")
+
+#Measure default settings
+print("Measuring result with default settings...")
+default = Creature(0.7,0.3)
+default.evaluate_data(args.i, args.t)
+print("Default k_p: " + str(default.k_p) + " default k_i: " + str(default.k_i) + \
+      " Score: " + str(default.rating) + "\n")
+
+with open(logfilename, "a", encoding="utf-8") as f:
+    f.write("\n***************************************************************\n")
+    f.write("Default settings results:\n")
+    f.write(f"k_p: {default.k_p}, k_i: {default.k_i}, Score: {default.rating}\n")
+
 if config.stability_verification is True:
     print("Stability verification enabled")
 
@@ -151,11 +183,6 @@ if config.debug_level != 1:
         print(creature.k_i)
         cntr = cntr + 1
 
-with open("ptp_optimization.log", "a", encoding="utf-8") as f:
-    f.write("***************************************************************\n")
-    f.write("Genetic algorithm results:\n")
-    os.chmod("ptp_optimization.log", 0o600)
-
 for epoch in range(config.gen_epochs):
     print("***************************************************************")
     print("EPOCH NUMBER ", epoch)
@@ -175,6 +202,10 @@ for epoch in range(config.gen_epochs):
         print("k_i: ", new_k_i)
         parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
+        string = str(epoch) + "," + str(i) + "," + str(parent.k_p) + "," + \
+                 str(parent.k_i) + "," + str(parent.rating) + "\n"
+        with open(csvfilename, "a", encoding="utf-8") as csvfile:
+            csvfile.write(string)
         i = i + 1
 
     print("Score:  ", score)
@@ -185,17 +216,17 @@ for epoch in range(config.gen_epochs):
     #Pick the best result and save it to the file
     index = sorted_scores_indexes[0]
 
-    with open("ptp_optimization.log", "a", encoding="utf-8") as f:
+    with open(logfilename, "a", encoding="utf-8") as f:
         f.write(f"Epoch number: {epoch}\n")
         f.write(f"k_p: {population[index].k_p} ")
         f.write(f"k_i: {population[index].k_p} ")
         f.write(f"Score: {score[index]}\n")
-        #Uncomment to print all scores to the file
-        #for i in range(0, len(score)):
-        #    f.write(f"Kp: {population[i].Kp} ")
-        #    f.write(f"Ki: {population[i].Ki} ")
-        #    f.write(f"Test {i} Score: {score[i]}\n")
-        os.chmod("ptp_optimization.log", 0o600)
+        #Write all scores to the file
+        for i in range(0, len(score)):
+            f.write(f"Kp: {population[i].Kp} ")
+            f.write(f"Ki: {population[i].Ki} ")
+            f.write(f"Test {i} Score: {score[i]}\n")
+        os.chmod(logfilename, 0o600)
 
     print("Sorted Scores indexes: ", sorted_scores_indexes)
 
@@ -209,6 +240,16 @@ for epoch in range(config.gen_epochs):
         if i is config.gen_elite_size:
             del elite[i:len(elite)]
             break
+
+    string = str(epoch) + "," + str(elite[0].k_p) + "," + str(elite[0].k_i) + "," + \
+             str(elite[0].rating) + "\n"
+    with open(elitefilename, "a", encoding="utf-8") as elitefile:
+        elitefile.write(string)
+
+    improvement = (elite[0].rating * 100)/default.rating
+    print("Best score ever improvement over default: " + str(improvement) + "%\n")
+    with open(logfilename, "a", encoding="utf-8") as f:
+        f.write(f"Best score ever improvement over default: {improvement}%\n")
 
     #Create new generation
     new_generation = []
@@ -328,19 +369,9 @@ for epoch in range(config.gen_epochs):
     #Switching generations
     population = new_generation
 
-
-with open("ptp_optimization.log", "a", encoding="utf-8") as f:
+with open(logfilename, "a", encoding="utf-8") as f:
     f.write("\n***************************************************************\n")
     f.write("Genetic algorithm best results:\n")
-    os.chmod("ptp_optimization.log", 0o600)
+    os.chmod(logfilename, 0o600)
     for creature in elite:
         f.write(f"k_p: {creature.k_p}, k_i: {creature.k_i}, Score: {creature.rating}\n")
-
-default = Creature(0.7,0.3)
-default.evaluate_data(args.i, args.t)
-
-with open("ptp_optimization.log", "a", encoding="utf-8") as f:
-    f.write("\n***************************************************************\n")
-    f.write("Default settings results:\n")
-    f.write(f"k_p: {default.k_p}, k_i: {default.k_i}, Score: {default.rating}\n")
-    os.chmod("ptp_optimization.log", 0o600)
