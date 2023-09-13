@@ -1,5 +1,5 @@
-"""Module providing GA for PTP PI controller."""
 #!/usr/bin/python3
+"""Module providing GA for PTP PI controller."""
 # Copyright (c) 2021 Intel
 # Licensed under the GNU General Public License v2.0 or later (the "License");
 # you may not use this file except in compliance with the License.
