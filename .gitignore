@@ -1,0 +1,7 @@
+#Log files
+ptp4l_*
+phc2sys_*
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
