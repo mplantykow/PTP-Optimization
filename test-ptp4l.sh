@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2021 Intel
+# Copyright (C) 2023 Maciek Machnikowski <maciek(at)machnikowski.net>
 # Licensed under the GNU General Public License v2.0 or later (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -40,7 +41,19 @@ done
 #	./clearadj/clearadj
 
 #Build the command
+
+#Basic clock reset - set time from system and freq to 0
 RES_CLK="phc_ctl $interface set freq 0 > /dev/null 2>/dev/null"
+
+#Clock reset by running ptp4l with default parameters and synchronizing time
+# prior to the test
+#RES_CLK="timeout 30 ptp4l -i $interface -m -2 -s --tx_timestamp_timeout 100"
+
+#This reset requires an optional patch to linuxptp - it will set the time and 
+# frequency in the device from system time
+#RES_CLK="phc_ctl $interface freq auto set > /dev/null 2>/dev/null"
+
+RES_CLK=$RES_CLK" > /dev/null 2>/dev/null"
 eval $RES_CLK
 
 CMD="ptp4l -i $interface -m -2 -s --tx_timestamp_timeout 100"
