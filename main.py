@@ -197,8 +197,7 @@ for epoch in range(config.gen_epochs):
         new_k_p = round(parent.k_p,3)
         new_k_i = round(parent.k_i,3)
         parent.mutate(new_k_p, new_k_i)
-        print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f} ", end="")
-        sys.stdout.flush()
+        print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f} ", end="", flush=True)
         parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
         with open(csvfilename, "a", encoding="utf-8") as csvfile:
@@ -224,7 +223,7 @@ for epoch in range(config.gen_epochs):
             f.write(f"Test {i}: k_p: {population[i].k_p:.3f} ")
             f.write(f"k_i: {population[i].k_i:.3f} ")
             f.write(f" Score: {score[i]:.3f}\n")
-        os.chmod(logfilename, 0o600)
+        #os.chmod(logfilename, 0o600)
 
     if config.debug_level == 2:
         print("Sorted Scores indexes: ", sorted_scores_indexes)
@@ -376,6 +375,6 @@ for epoch in range(config.gen_epochs):
 with open(logfilename, "a", encoding="utf-8") as f:
     f.write("\n***************************************************************\n")
     f.write("Genetic algorithm best results:\n")
-    os.chmod(logfilename, 0o600)
+    #os.chmod(logfilename, 0o600)
     for creature in elite:
         f.write(f"k_p: {creature.k_p}, k_i: {creature.k_i}, Score: {creature.rating}\n")

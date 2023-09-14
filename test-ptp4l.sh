@@ -62,7 +62,7 @@ then
 fi
 
 eval $CMD
-chmod 600 "$DIR.log"
+#chmod 600 "$DIR.log"
 cat "$DIR.log" | grep master\ offset > temp.log
 if [[ -n "$CUT" ]]
 then
