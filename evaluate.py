@@ -27,7 +27,7 @@ class Creature():
         """Init function."""
         self.k_p = k_p
         self.k_i = k_i
-        rating = 0
+        self.rating = 0
 
     def mutate(self, new_k_p, new_k_i):
         """Function mutating data."""
@@ -42,12 +42,10 @@ class Creature():
             try:
                 if config.app == "phc2sys":
                     subprocess.check_call(
-                            split('./test-phc2sys.sh -s %s -c CLOCK_REALTIME -P %s -I %s -t %s' %
-                                 (str(interface), str(self.k_p), str(self.k_i), str(time))))
+                            split(f'./test-phc2sys.sh -s {interface} -c CLOCK_REALTIME -P {self.k_p} -I {self.k_i} -t {time}'))
                 elif config.app == "ptp4l":
                     subprocess.check_call(
-                            split('./test-ptp4l.sh -i %s -P %s -I %s -t %s' %
-                                 (str(interface), str(self.k_p), str(self.k_i), str(time))))
+                            split(f'./test-ptp4l.sh -i {interface} -P {self.k_p} -I {self.k_i} -t {time}'))
             except subprocess.SubprocessError:
                 if config.app == "phc2sys":
                     print("Error calling phc2sys")
@@ -108,15 +106,9 @@ class Creature():
         """Function getting master offset from file."""
         Master_offset.clear()
         if config.app == "phc2sys":
-            file_name = "phc2sys_P%s_I%s/phc2sys_P%s_I%s.log" % (str(self.k_p),
-                                                                 str(self.k_i),
-                                                                 str(self.k_p),
-                                                                 str(self.k_i))
+            file_name = f"phc2sys_P{self.k_p}_I{self.k_i}/phc2sys_P{self.k_p}_I{self.k_i}.log"
         elif config.app == "ptp4l":
-            file_name = "ptp4l_P%s_I%s/ptp4l_P%s_I%s.log" % (str(self.k_p),
-                                                             str(self.k_i),
-                                                             str(self.k_p),
-                                                             str(self.k_i))
+            file_name = f"ptp4l_P{self.k_p}_I{self.k_i}/ptp4l_P{self.k_p}_I{self.k_i}.log"
         else:
             file_name = "filename"
 
