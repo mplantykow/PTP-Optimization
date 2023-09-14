@@ -81,7 +81,6 @@ class Creature():
                 if config.debug_level != 1:
                     print("Choosen metric: MAE")
                 rating = rate_data_mae(stripped_master_offset)
-
             Rating_table.append(rating)
         #If k_p and k_i are repeated, return previously calculated rating
         else:
@@ -137,7 +136,8 @@ def rate_data_mse(data):
     array1 = list(map(float, arr))
     array2 = list(map(int, data))
     mse = mean_squared_error(array1, array2)
-    print("MSE: ", mse)
+    mse = round(mse,3)
+    print(f"MSE: {mse}")
 
     return mse
 
@@ -148,7 +148,8 @@ def rate_data_rmse(data):
     array1 = list(map(float, arr))
     array2 = list(map(int, data))
     rmse = mean_squared_error(array1, array2, squared=False)
-    print("RMSE: ", rmse)
+    rmse = round(rmse,3)
+    print(f"RMSE: {rmse}")
 
     return rmse
 
@@ -159,6 +160,6 @@ def rate_data_mae(data):
     array1 = list(map(float, arr))
     array2 = list(map(int, data))
     mae = mean_absolute_error(array1, array2)
-    print("MAE: ", mae)
+    print(f"MAE: {mae:.3f}")
 
     return mae
