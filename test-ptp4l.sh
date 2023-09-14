@@ -40,7 +40,7 @@ done
 #	./clearadj/clearadj
 
 #Build the command
-RES_CLK="phc_ctl $interface set freq 0 > /dev/null"
+RES_CLK="phc_ctl $interface set freq 0 > /dev/null 2>/dev/null"
 eval $RES_CLK
 
 CMD="ptp4l -i $interface -m -2 -s --tx_timestamp_timeout 100"
@@ -50,7 +50,7 @@ DIR="ptp4l"
 [ ! -z $THRESHOLD ] && CMD=$CMD" --servo_offset_threshold $THRESHOLD"
 [ ! -z $CFG_FILE ] && CMD=$CMD" -f $CFG_FILE"
 [ ! -z $TIMEOUT ] && CMD="timeout $TIMEOUT $CMD"
-CMD="$CMD > $DIR.log"
+CMD="$CMD > $DIR.log 2>/dev/null"
 
 if [[ -n "$VERBOSE" ]]
 then
