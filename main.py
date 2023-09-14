@@ -118,10 +118,10 @@ args = parser.parse_args()
 timestr = time.strftime("%Y%m%d-%H%M%S")
 
 #Define filenames
-csvfilename = str(config.app) + "_"  + timestr + ".csv"
-logfilename = str(config.app) + "_" + timestr + ".log"
-elitefilename = str(config.app) + "_" + timestr + "_elite.csv"
-stabilityfilename = str(config.app) + "_" + timestr + "_stability.log"
+csvfilename = f'{config.app}_{timestr}.csv'
+logfilename = f'{config.app}_{timestr}.log'
+elitefilename = f'{config.app}_{timestr}_elite.csv'
+stabilityfilename = f'{config.app}_{timestr}_stability.log'
 
 #Add header to csvfilename
 with open(csvfilename, "a", encoding="utf-8") as csvfile:
