@@ -38,7 +38,6 @@ class Creature():
         #Check if provided k_p and k_i are not repeated
         repeated_data = self.validate_data()
         if repeated_data == 0:
-            print("Correct data!")
             try:
                 if config.app == "phc2sys":
                     subprocess.check_call(

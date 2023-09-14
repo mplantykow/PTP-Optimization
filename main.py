@@ -194,12 +194,12 @@ for epoch in range(config.gen_epochs):
     #Evaluate candidates
     i = 0
     for parent in population:
-        print("Evaluating creature number ", i)
         new_k_p = round(parent.k_p,3)
         new_k_i = round(parent.k_i,3)
         parent.mutate(new_k_p, new_k_i)
-        print("k_p: ", new_k_p)
-        print("k_i: ", new_k_i)
+        #print("k_p: ", new_k_p)
+        #print("k_i: ", new_k_i)
+        print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f}")
         parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
         string = str(epoch) + "," + str(i) + "," + str(parent.k_p) + "," + \
@@ -218,14 +218,14 @@ for epoch in range(config.gen_epochs):
 
     with open(logfilename, "a", encoding="utf-8") as f:
         f.write(f"Epoch number: {epoch}\n")
-        f.write(f"k_p: {population[index].k_p} ")
-        f.write(f"k_i: {population[index].k_p} ")
-        f.write(f"Score: {score[index]}\n")
+        f.write(f"k_p: {population[index].k_p:.3f} ")
+        f.write(f"k_i: {population[index].k_p:.3f} ")
+        f.write(f"Score: {score[index]:.3f}\n")
         #Write all scores to the file
         for i in range(0, len(score)):
-            f.write(f"k_p: {population[i].k_p} ")
-            f.write(f"k_i: {population[i].k_i} ")
-            f.write(f"Test {i} Score: {score[i]}\n")
+            f.write(f"Test {i}: k_p: {population[i].k_p:.3f} ")
+            f.write(f"k_i: {population[i].k_i:.3f} ")
+            f.write(f" Score: {score[i]:.3f}\n")
         os.chmod(logfilename, 0o600)
 
     print("Sorted Scores indexes: ", sorted_scores_indexes)
