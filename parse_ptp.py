@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+"""Script for parsing and plotting linuxptp tools logs"""
 # Copyright (c) 2021 Intel
 # Licensed under the GNU General Public License v2.0 or later (the "License");
 # you may not use this file except in compliance with the License.
@@ -9,11 +10,13 @@ import re
 import argparse
 import os
 import sys
+import warnings
 import numpy as np
 from matplotlib import pyplot as plt
-import warnings
+
 
 def parse_ptp4l_out(line):
+    """Parse ptp4l logs"""
     # journalctl -u ptp4l.service
     # pattern = '^(.+)ptp4l\[[0-9]+\]: \[(.+)\] master offset\s+(-?[0-9]+) s([0123]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
     # standard ptp4l.log
@@ -37,7 +40,9 @@ def parse_ptp4l_out(line):
 
     return row
 
+
 def parse_phc2sys_out(line):
+    """Parse phc2sys logs"""
     # journalctl -u ptp4l.service
     # pattern = '^(.+)ptp4l\[[0-9]+\]: \[(.+)\] master offset\s+(-?[0-9]+) s([012]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
     # standard phc2sys.log:
@@ -62,41 +67,45 @@ def parse_phc2sys_out(line):
 
     return row
 
+
 def filter_stable(arr):
-    filter = []
+    """Filter output to stable results only"""
+    stable = []
 
     for element in arr:
         if element[2] == 2 or element[2] == 3:
-            filter.append(True)
+            stable.append(True)
         else:
-            filter.append(False)
+            stable.append(False)
 
-    return arr[filter]
+    return arr[stable]
 
-def plot(array):
+
+def plot(result_array):
+    """Plot logged data to a file"""
     warnings.filterwarnings('ignore')
     figure, axes = plt.subplots(nrows=3, ncols=1)
 
-    array = filter_stable(array)
+    result_array = filter_stable(result_array)
 
     #master_offset
     axes[0].set_title('Master offset')
-    axes[0].plot(array[:,0],array[:,3])
+    axes[0].plot(result_array[:,0],result_array[:,3])
     axes[0].set(xlabel='[s]', ylabel='[ns]')
-    axes[0].set_xlim([0, max(array[:,0])])
+    axes[0].set_xlim([0, max(result_array[:,0])])
     #axes[0].set_yscale('symlog')
     axes[0].spines['bottom'].set_position('zero')
     #freq
     axes[1].set_title('Frequency')
-    axes[1].plot(array[:,0],array[:,4])
+    axes[1].plot(result_array[:,0],result_array[:,4])
     axes[1].set(xlabel='[s]', ylabel='[ppb]')
-    axes[1].set_xlim([0, max(array[:,0])])
+    axes[1].set_xlim([0, max(result_array[:,0])])
     axes[1].spines['bottom'].set_position('zero')
     #path_delay
     axes[2].set_title('Path delay')
-    axes[2].plot(array[:,0],array[:,5])
+    axes[2].plot(result_array[:,0],result_array[:,5])
     axes[2].set(xlabel='[s]', ylabel='[ns]')
-    axes[2].set_xlim([0, max(array[:,0])])
+    axes[2].set_xlim([0, max(result_array[:,0])])
 
     #print only outer labels
     for ax in axes.flat:
@@ -108,23 +117,24 @@ def plot(array):
     figure.set_figwidth(15)
     plt.savefig("test.png")
 
-    if (0):
-        # the histogram of the data https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.hist.html
-        n, bins, patches = plt.hist(array[:,3], 30, density=1, facecolor='g', alpha=0.75)
+    # the histogram of the data https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.hist.html
+    #plt.hist(array[:,3], 30, density=1, facecolor='g', alpha=0.75)
+    #
+    #plt.ylabel('Probability')
+    #plt.title('Histogram of offset')
+    #plt.axis([-10, 10, 0, 0.3])
+    #plt.grid(True)
+    #plt.show()
 
-        plt.ylabel('Probability')
-        plt.title('Histogram of offset')
-        plt.axis([-10, 10, 0, 0.3])
-        plt.grid(True)
-        plt.show()
 
 def parse_file(filename, normalize=0):
+    """Parse log file"""
     # Using readlines()
-    with open(args.input, 'r') as file1:
-        Lines = file1.readlines()
+    with open(filename, 'r', encoding="utf-8") as file1:
+        lines = file1.readlines()
 
-    if (Lines):
-        if (Lines[0].startswith("phc2sys")):
+    if lines:
+        if lines[0].startswith("phc2sys"):
             file_type = 1
         else:
             file_type = 0
@@ -133,57 +143,59 @@ def parse_file(filename, normalize=0):
         print("The file is empty or Linex[0] does not exist")
         sys.exit()
 
-    for line in Lines:
-        if (file_type):
+    for line in lines:
+        if file_type:
             vector = parse_phc2sys_out(line)
         else:
             vector = parse_ptp4l_out(line)
 
         if vector:
             try:
-                array
+                result
             except NameError:
-                array = np.array(vector)
+                result = np.array(vector)
             else:
-                array = np.vstack([array, vector])
+                result = np.vstack([result, vector])
         else:
             continue
 
         # extract state
         state = vector[2]
-        if (state == 0):
+        if state == 0:
             try:
                 start_time
             except NameError:
                 start_time = vector[0]
             continue
 
-        if (state == 1):
+        if state == 1:
             continue
 
-        if (state == 2 or state == 3):
+        if state in (2,3):
             try:
                 start_delay
             except NameError:
                 start_delay = vector[0] - start_time
 
-    if (normalize):
-        array = array - [start_time, 0, 0, 0 ,0 ,0]
+    if normalize:
+        result = result - [start_time, 0, 0, 0 ,0 ,0]
 
-    return array
+    return result
+
 
 def unit_test():
+    """Run unit-test for parsing functions"""
     test_string = 'ptp4l[145810.411]: master offset        -24 s2 freq     -27 path delay       642'
     print("parse_ptp4l_out:")
-    array = parse_ptp4l_out(test_string)
+    result = parse_ptp4l_out(test_string)
     print(test_string)
-    print(array)
+    print(result)
 
     test_string = 'phc2sys[689991.253]: CLOCK_REALTIME phc offset        33 s2 freq   -5355 delay    603'
     print("parse_phc2sys_out:")
-    array = parse_phc2sys_out(test_string)
+    result = parse_phc2sys_out(test_string)
     print(test_string)
-    print(array)
+    print(result)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PCAP reader')
@@ -198,12 +210,12 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if not os.path.isfile(args.input):
-        print('"{}" does not exist'.format(args.input), file=sys.stderr)
+        print(f'File {format(args.input)} does not exist!', file=sys.stderr)
         sys.exit(-1)
 
     array = parse_file(args.input, 1)
 
-    if (args.plot):
+    if args.plot:
         plot(array)
 
     sys.exit(0)
