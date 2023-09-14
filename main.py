@@ -196,8 +196,8 @@ for epoch in range(config.gen_epochs):
         new_k_p = round(parent.k_p,3)
         new_k_i = round(parent.k_i,3)
         parent.mutate(new_k_p, new_k_i)
-        print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f} ")
-        #print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f} ", end="")
+        print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f} ", end="")
+        sys.stdout.flush()
         parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
         with open(csvfilename, "a", encoding="utf-8") as csvfile:
