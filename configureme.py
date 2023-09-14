@@ -5,12 +5,8 @@ debug_level = 1
 app = "phc2sys"
 # Metric: MSE, RMSE, MAE
 metric = "MSE"
-# Fixed Kp, Ki values
+# Fixed Kp, Ki values from initial_values.csv
 initial_values = False
-# Initial Kp value
-initial_kp = 0.3
-# Initial Ki value
-initial_ki = 0.7
 
 ### Servo stability verification
 # Stability verification

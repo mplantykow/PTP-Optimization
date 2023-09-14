@@ -122,6 +122,7 @@ csvfilename = f'{config.app}_{timestr}.csv'
 logfilename = f'{config.app}_{timestr}.log'
 elitefilename = f'{config.app}_{timestr}_elite.csv'
 stabilityfilename = f'{config.app}_{timestr}_stability.log'
+initialvaluesfilename = "initial_values.csv"
 
 #Add header to csvfilename
 with open(csvfilename, "a", encoding="utf-8") as csvfile:
@@ -146,26 +147,37 @@ if config.stability_verification is True:
     print("Stability verification enabled")
 
 #Initial population
+population_size = config.gen_population_size
 population = []
 elite = []
-initial_values = False
-
-if config.initial_values is True:
-    initial_values = True
+count = 0
 
 print("Creating initial population...")
 
 if (config.gen_mutation_coef > 1 or config.gen_mutation_coef < -1):
     sys.exit("Improper mutation coefficient in the config file")
 
-for _ in range(config.gen_population_size):
-    if initial_values is True:
-        k_p = config.initial_kp
-        k_i = config.initial_ki
-        initial_values = False
-        population.append(Creature(k_p, k_i))
-        continue
+if config.initial_values is True:
+    with open(initialvaluesfilename, "r") as initial_values:
+        lines = initial_values.readlines()
+        no_of_lines = len(lines)
+        if no_of_lines > population_size:
+            sys.exit("Improper number of initial values")
 
+        for line in lines:
+            parts = line.strip().split(',')
+            if len(parts) == 2:
+                try:
+                    k_p = float(parts[0])
+                    k_i = float(parts[1])
+                    population.append(Creature(k_p, k_i))
+                    count = count + 1
+                except ValueError:
+                    print(f"Skipping invalid line: {line}")
+
+population_size = population_size - count
+
+for _ in range(population_size):
     if config.stability_verification is True:
         k_p,k_i = draw_stable_kp_ki()
         population.append(Creature(k_p,k_i))
