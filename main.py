@@ -134,8 +134,7 @@ with open(elitefilename, "a", encoding="utf-8") as elitefile:
 print("Measuring result with default settings...")
 default = Creature(0.7,0.3)
 default.evaluate_data(args.i, args.t)
-print("Default k_p: " + str(default.k_p) + " default k_i: " + str(default.k_i) + \
-      " Score: " + str(default.rating) + "\n")
+print(f"Default k_p: {default.k_p} default k_i: {default.k_i} Score: {default.rating}\n")
 
 with open(logfilename, "a", encoding="utf-8") as f:
     f.write("\n***************************************************************\n")
@@ -185,7 +184,7 @@ if config.debug_level != 1:
 
 for epoch in range(config.gen_epochs):
     print("***************************************************************")
-    print("EPOCH NUMBER ", epoch)
+    print(f"EPOCH NUMBER {epoch}")
     print("***************************************************************")
 
     score = []
@@ -197,18 +196,16 @@ for epoch in range(config.gen_epochs):
         new_k_p = round(parent.k_p,3)
         new_k_i = round(parent.k_i,3)
         parent.mutate(new_k_p, new_k_i)
-        #print("k_p: ", new_k_p)
-        #print("k_i: ", new_k_i)
-        print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f}")
+        print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f} ")
+        #print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f} ", end="")
         parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
-        string = str(epoch) + "," + str(i) + "," + str(parent.k_p) + "," + \
-                 str(parent.k_i) + "," + str(parent.rating) + "\n"
         with open(csvfilename, "a", encoding="utf-8") as csvfile:
-            csvfile.write(string)
+            csvfile.write(f"{epoch},{i},{parent.k_p},{parent.k_i},{parent.rating}\n")
         i = i + 1
 
-    print("Score:  ", score)
+    if config.debug_level == 2:
+        print(f"Score:  {score}")
 
     #Select candidates fo new generation
     sorted_scores_indexes = numpy.argsort(score)
@@ -228,7 +225,8 @@ for epoch in range(config.gen_epochs):
             f.write(f" Score: {score[i]:.3f}\n")
         os.chmod(logfilename, 0o600)
 
-    print("Sorted Scores indexes: ", sorted_scores_indexes)
+    if config.debug_level == 2:
+        print("Sorted Scores indexes: ", sorted_scores_indexes)
 
     #Create Elite
     for i in range(0,config.gen_elite_size):
@@ -241,15 +239,18 @@ for epoch in range(config.gen_epochs):
             del elite[i:len(elite)]
             break
 
-    string = str(epoch) + "," + str(elite[0].k_p) + "," + str(elite[0].k_i) + "," + \
-             str(elite[0].rating) + "\n"
     with open(elitefilename, "a", encoding="utf-8") as elitefile:
-        elitefile.write(string)
+        elitefile.write(f"{epoch},{elite[0].k_p},{elite[0].k_i},{elite[0].rating}\n")
 
-    improvement = (elite[0].rating * 100)/default.rating
-    print("Best score ever improvement over default: " + str(improvement) + "%\n")
-    with open(logfilename, "a", encoding="utf-8") as f:
-        f.write(f"Best score ever improvement over default: {improvement}%\n")
+    print(f"Epoch {epoch}: Best score: {elite[0].rating} default {default.rating}")
+    if elite[0].rating > default.rating:
+        print(f"Result worse by {(elite[0].rating-default.rating)/default.rating:.1%}\n")
+        with open(logfilename, "a", encoding="utf-8") as f:
+            f.write(f"Result worse by {(elite[0].rating-default.rating)/default.rating:.1%}\n")
+    else:
+        print(f"Result better by {(default.rating-elite[0].rating)/default.rating:.1%}\n")
+        with open(logfilename, "a", encoding="utf-8") as f:
+            f.write(f"Result better by {(default.rating-elite[0].rating)/default.rating:.1%}\n")
 
     #Create new generation
     new_generation = []
@@ -260,9 +261,11 @@ for epoch in range(config.gen_epochs):
     for x in range(config.gen_num_inherited):
         y = x + 1
         for _ in range(config.gen_num_inherited - x - 1):
-            print(x, " + ", y)
+            if config.debug_level == 2:
+                print(x, " + ", y)
             if config.stability_verification:
-                print("Veryfing parent stability")
+                if config.debug_level == 2:
+                    print("Veryfing parent stability")
                 if (validate_stability(population[sorted_scores_indexes[x]].k_p,
                                        population[sorted_scores_indexes[y]].k_i)):
                     new_generation.append(Creature(population[sorted_scores_indexes[x]].k_p,
@@ -290,7 +293,7 @@ for epoch in range(config.gen_epochs):
     if config.debug_level != 1:
         cntr = 0
         for creature in new_generation:
-            print("New generation creature ", cntr)
+            print(f"New generation creature {cntr}")
             print(creature.k_p)
             print(creature.k_i)
             cntr = cntr + 1
@@ -363,7 +366,7 @@ for epoch in range(config.gen_epochs):
     progress = number_of_creatures * (epoch + 1)
     epoch_progress = number_of_creatures * config.gen_epochs
     print("***************************************************************")
-    print("Progress: ", progress/epoch_progress * 100, "%")
+    print(f"Progress: {progress/epoch_progress:.1%}%")
     print("***************************************************************")
 
     #Switching generations
