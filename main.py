@@ -28,11 +28,11 @@ class Range():
     def __iter__(self):
         yield self
 
-def validate_stability(k_p, k_i):
+def validate_stability(p_term, i_term):
     """Function validating stability."""
-    eq1 = (((k_p + k_i)*(k_p + k_i)) < (4*k_i))
-    eq2 = 0 <= k_i <= 4
-    eq3 = 0 <= k_p <= 1
+    eq1 = (((p_term + i_term)*(p_term + i_term)) < (4*i_term))
+    eq2 = 0 <= i_term <= 4
+    eq3 = 0 <= p_term <= 1
     if eq1 and eq2 and eq3:
         return True
     return False
@@ -41,36 +41,36 @@ def draw_stable_kp_ki():
     """Function drawing stable k_p and k_i pair."""
     stable = False
     while not stable:
-        k_p = random.uniform(0, config.gen_max_kp_stable)
-        k_i = random.uniform(0, config.gen_max_ki_stable)
-        if validate_stability(k_p, k_i):
+        p_term = round(random.uniform(0, config.gen_max_kp_stable), 3)
+        i_term = round(random.uniform(0, config.gen_max_ki_stable), 3)
+        if validate_stability(p_term, i_term):
             stable = True
-    return k_p, k_i
+    return p_term, i_term
 
-def redefine_kp_ki_to_stable(k_p, k_i):
+def redefine_kp_ki_to_stable(p_term, i_term):
     """Function redefining k_p and k_i to stable."""
-    if validate_stability(k_p, k_i):
-        return k_p,k_i
+    if validate_stability(p_term, i_term):
+        return p_term,i_term
     stable = False
     while not stable:
         #Print stability related calculations to the file
         if config.debug_level != 1:
             with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
-                stabilityfile.write(f"{k_i};{k_p}\n")
-        if k_i < 1:
-            k_i = k_i + (1 - k_i) * config.reduction_determinant
-        if k_i > 1:
-            k_i = k_i - (k_i - 1) * config.reduction_determinant
-        if k_i == 0:
-            k_i = k_i + config.reduction_determinant
-        if k_p == 0:
-            k_p = k_p + config.reduction_determinant
-        k_p = k_p - config.reduction_determinant * k_p
-        k_i = round(k_i, 3)
-        k_p = round(k_p, 3)
-        if validate_stability(k_p, k_i):
+                stabilityfile.write(f"{i_term};{p_term}\n")
+        if i_term < 1:
+            i_term = i_term + (1 - i_term) * config.reduction_determinant
+        if i_term > 1:
+            i_term = i_term - (i_term - 1) * config.reduction_determinant
+        if i_term == 0:
+            i_term = i_term + config.reduction_determinant
+        if p_term == 0:
+            p_term = p_term + config.reduction_determinant
+        p_term = p_term - config.reduction_determinant * p_term
+        i_term = round(i_term, 3)
+        p_term = round(p_term, 3)
+        if validate_stability(p_term, i_term):
             stable = True
-    return k_p,k_i
+    return p_term,i_term
 
 if config.metric not in {"MSE", "RMSE", "MAE"}:
     print("Specify one of the following metrics: MSE, RMSE, MAE")
@@ -158,7 +158,7 @@ if (config.gen_mutation_coef > 1 or config.gen_mutation_coef < -1):
     sys.exit("Improper mutation coefficient in the config file")
 
 if config.initial_values is True:
-    with open(initialvaluesfilename, "r") as initial_values:
+    with open(initialvaluesfilename, "r", encoding="utf-8") as initial_values:
         lines = initial_values.readlines()
         no_of_lines = len(lines)
         if no_of_lines > population_size:
@@ -190,9 +190,7 @@ print("Initial population created!")
 
 if config.debug_level != 1:
     for creature in population:
-        print("Creature", cntr)
-        print(creature.k_p)
-        print(creature.k_i)
+        print(f'Creature {cntr} k_p: {creature.k_p} k_i: {creature.k_i}')
         cntr = cntr + 1
 
 for epoch in range(config.gen_epochs):
@@ -209,7 +207,8 @@ for epoch in range(config.gen_epochs):
         new_k_p = round(parent.k_p,3)
         new_k_i = round(parent.k_i,3)
         parent.mutate(new_k_p, new_k_i)
-        print(f"Epoch {epoch}: creature {i}, k_p {new_k_p:.3f}, k_i {new_k_i:.3f} ", end="", flush=True)
+        print(f'Epoch {epoch}: creature {i}, k_p {new_k_p:.3f},'\
+              f' k_i {new_k_i:.3f} ', end="", flush=True)
         parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
         with open(csvfilename, "a", encoding="utf-8") as csvfile:
@@ -231,7 +230,7 @@ for epoch in range(config.gen_epochs):
         f.write(f"k_i: {population[index].k_p:.3f} ")
         f.write(f"Score: {score[index]:.3f}\n")
         #Write all scores to the file
-        for i in range(0, len(score)):
+        for i in range(len(score)):
             f.write(f"Test {i}: k_p: {population[i].k_p:.3f} ")
             f.write(f"k_i: {population[i].k_i:.3f} ")
             f.write(f" Score: {score[i]:.3f}\n")
@@ -241,12 +240,12 @@ for epoch in range(config.gen_epochs):
         print("Sorted Scores indexes: ", sorted_scores_indexes)
 
     #Create Elite
-    for i in range(0,config.gen_elite_size):
+    for i in range(config.gen_elite_size):
         index = sorted_scores_indexes[i]
         elite.append(population[index])
     elite.sort(key = lambda Creature: Creature.rating)
 
-    for i in range(0, len(elite)):
+    for i in range(len(elite)):
         if i is config.gen_elite_size:
             del elite[i:len(elite)]
             break
@@ -305,9 +304,7 @@ for epoch in range(config.gen_epochs):
     if config.debug_level != 1:
         cntr = 0
         for creature in new_generation:
-            print(f"New generation creature {cntr}")
-            print(creature.k_p)
-            print(creature.k_i)
+            print(f"New generation creature {cntr}, k_p: {creature.k_p}, k_i: {creature.k_i}")
             cntr = cntr + 1
 
     new_generation_size = len(new_generation)
@@ -324,9 +321,8 @@ for epoch in range(config.gen_epochs):
             if cntr2 < new_generation_size:
                 cntr2 = cntr2 + 1
                 continue
-            print("New generation creature ", cntr2)
-            print(creature.k_p)
-            print(creature.k_i)
+            print(f'New generation creature {cntr2} k_p: {creature.k_p:.3f}'\
+                  f' k_i: {creature.k_i:.3f}')
             cntr2 = cntr2 + 1
     new_generation_size = len(new_generation)
 
@@ -347,9 +343,8 @@ for epoch in range(config.gen_epochs):
             if cntr2 < new_generation_size:
                 cntr2 = cntr2 + 1
                 continue
-            print("New generation creature ", cntr2)
-            print(creature.k_p)
-            print(creature.k_i)
+            print(f'New generation creature {cntr2} k_p: {creature.k_p:.3f}'\
+                  f' k_i: {creature.k_i:.3f}')
             cntr2 = cntr2 + 1
 
     #Mutation
@@ -368,9 +363,8 @@ for epoch in range(config.gen_epochs):
     if config.debug_level != 1:
         cntr = 0
         for creature in new_generation:
-            print("New generation creature ", cntr)
-            print(creature.k_p)
-            print(creature.k_i)
+            print(f'New generation creature {cntr} k_p: {creature.k_p:.3f}'\
+                  f' k_i: {creature.k_i:.3f}')
             cntr = cntr + 1
 
     #Print information about progress
@@ -378,7 +372,7 @@ for epoch in range(config.gen_epochs):
     progress = number_of_creatures * (epoch + 1)
     epoch_progress = number_of_creatures * config.gen_epochs
     print("***************************************************************")
-    print(f"Progress: {progress/epoch_progress:.1%}%")
+    print(f"Progress: {progress/epoch_progress:.1%}")
     print("***************************************************************")
 
     #Switching generations
