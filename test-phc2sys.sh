@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2021 Intel
+# Copyright (C) 2023 Maciek Machnikowski <maciek(at)machnikowski.net>
 # Licensed under the GNU General Public License v2.0 or later (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -81,7 +82,7 @@ then
 fi
 
 eval $CMD
-chmod 600 "$DIR.log"
+#chmod 600 "$DIR.log"
 
 [[ ! -d "$DIR" && ! -L "$DIR" && ! -f "$DIR" ]] && mkdir $DIR
 python3 parse_ptp.py --input $DIR.log --plot

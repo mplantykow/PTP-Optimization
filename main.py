@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """Module providing GA for PTP PI controller."""
 # Copyright (c) 2021 Intel
+# Copyright (C) 2023 Maciek Machnikowski <maciek(at)machnikowski.net>
 # Licensed under the GNU General Public License v2.0 or later (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,6 +15,8 @@ import time
 import numpy
 import configureme as config
 from evaluate import Creature
+from create_graph import graph_elite
+from create_graph import graph_all
 
 class Range():
     """Class providing range"""
@@ -27,19 +30,19 @@ class Range():
     def __iter__(self):
         yield self
 
-def validate_stability(k_p, k_i):
+def validate_stability(p_term, i_term):
     """Function validating stability."""
     if config.stability_verification == "Complex":
-        eq1 = (((k_p + k_i)*(k_p + k_i)) < (4*k_i))
-        eq2 = 0 <= k_i <= 4
-        eq3 = 0 <= k_p <= 1
+        eq1 = (((p_term + i_term)*(p_term + i_term)) < (4*i_term))
+        eq2 = 0 <= i_term <= 4
+        eq3 = 0 <= p_term <= 1
         if eq1 and eq2 and eq3:
             return True
         return False
     if config.stability_verification == "Real":
-        eq1 = ((2*k_p) < (4 - k_i))
-        eq2 = 0 <= k_i <= 4
-        eq3 = 0 <= k_p <= 2
+        eq1 = ((2*p_term) < (4 - i_term))
+        eq2 = 0 <= i_term <= 4
+        eq3 = 0 <= p_term <= 2
         if eq1 and eq2 and eq3:
             return True
         return False
@@ -52,52 +55,52 @@ def draw_stable_kp_ki():
     else:
         gen_max_kp_stable = config.gen_max_kp_stable_real
     while not stable:
-        k_p = random.uniform(0, gen_max_kp_stable)
-        k_i = random.uniform(0, config.gen_max_ki_stable)
-        if validate_stability(k_p, k_i):
+        p_term = random.uniform(0, gen_max_kp_stable)
+        i_term = random.uniform(0, config.gen_max_ki_stable)
+        if validate_stability(p_term, i_term):
             stable = True
-    return k_p, k_i
+    return p_term, i_term
 
-def redefine_kp_ki_to_stable(k_p, k_i):
+def redefine_kp_ki_to_stable(p_term, i_term):
     """Function redefining k_p and k_i to stable."""
-    if validate_stability(k_p, k_i):
-        return k_p,k_i
+    if validate_stability(p_term, i_term):
+        return p_term,i_term
     stable = False
     if config.stability_verification == "Complex":
         while not stable:
             if config.debug_level != 1:
                 with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
-                    stabilityfile.write(f"{k_i};{k_p}\n")
-            if k_i < 1:
-                k_i = k_i + (1 - k_i) * config.reduction_determinant
-            if k_i > 1:
-                k_i = k_i - (k_i - 1) * config.reduction_determinant
-            if k_i == 0:
-                k_i = k_i + config.reduction_determinant
-            if k_p == 0:
-                k_p = k_p + config.reduction_determinant
-            k_p = k_p - (k_p * config.reduction_determinant)
-            k_i = round(k_i, 3)
-            k_p = round(k_p, 3)
-            if validate_stability(k_p, k_i):
+                    stabilityfile.write(f"{i_term};{p_term}\n")
+            if i_term < 1:
+                i_term = i_term + (1 - i_term) * config.reduction_determinant
+            if i_term > 1:
+                i_term = i_term - (i_term - 1) * config.reduction_determinant
+            if i_term == 0:
+                i_term = i_term + config.reduction_determinant
+            if p_term == 0:
+                p_term = p_term + config.reduction_determinant
+            p_term = p_term - (p_term * config.reduction_determinant)
+            i_term = round(i_term, 3)
+            p_term = round(p_term, 3)
+            if validate_stability(p_term, i_term):
                 stable = True
-        return k_p,k_i
+        return p_term,i_term
     if config.stability_verification == "Real":
         while not stable:
             if config.debug_level != 1:
                 with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
-                    stabilityfile.write(f"{k_i};{k_p}\n")
-            k_i = k_i - (k_i * config.reduction_determinant)
-            k_p = k_p - (k_p * config.reduction_determinant)
-            if k_i <= 0:
-                k_i = k_i + config.reduction_determinant
-            if k_p <= 0:
-                k_p = k_p + config.reduction_determinant
-            k_i = round(k_i, 3)
-            k_p = round(k_p, 3)
-            if validate_stability(k_p, k_i):
+                    stabilityfile.write(f"{i_term};{p_term}\n")
+            i_term = i_term - (i_term * config.reduction_determinant)
+            p_term = p_term - (p_term * config.reduction_determinant)
+            if i_term <= 0:
+                i_term = i_term + config.reduction_determinant
+            if p_term <= 0:
+                p_term = p_term + config.reduction_determinant
+            i_term = round(i_term, 3)
+            p_term = round(p_term, 3)
+            if validate_stability(p_term, i_term):
                 stable = True
-        return k_p,k_i
+        return p_term,i_term
 
 if config.metric not in {"MSE", "RMSE", "MAE"}:
     print("Specify one of the following metrics: MSE, RMSE, MAE")
@@ -148,10 +151,11 @@ args = parser.parse_args()
 timestr = time.strftime("%Y%m%d-%H%M%S")
 
 #Define filenames
-csvfilename = str(config.app) + "_"  + timestr + ".csv"
-logfilename = str(config.app) + "_" + timestr + ".log"
-elitefilename = str(config.app) + "_" + timestr + "_elite.csv"
-stabilityfilename = str(config.app) + "_" + timestr + "_stability.log"
+csvfilename = f'{config.app}_{timestr}.csv'
+logfilename = f'{config.app}_{timestr}.log'
+elitefilename = f'{config.app}_{timestr}_elite.csv'
+stabilityfilename = f'{config.app}_{timestr}_stability.log'
+initialvaluesfilename = "initial_values.csv"
 
 #Add header to csvfilename
 with open(csvfilename, "a", encoding="utf-8") as csvfile:
@@ -165,8 +169,7 @@ with open(elitefilename, "a", encoding="utf-8") as elitefile:
 print("Measuring result with default settings...")
 default = Creature(0.7,0.3)
 default.evaluate_data(args.i, args.t)
-print("Default k_p: " + str(default.k_p) + " default k_i: " + str(default.k_i) + \
-      " Score: " + str(default.rating) + "\n")
+print(f"Default k_p: {default.k_p} default k_i: {default.k_i} Score: {default.rating}\n")
 
 with open(logfilename, "a", encoding="utf-8") as f:
     f.write("\n***************************************************************\n")
@@ -177,26 +180,37 @@ if config.stability_verification is True:
     print("Stability verification enabled")
 
 #Initial population
+population_size = config.gen_population_size
 population = []
 elite = []
-initial_values = False
-
-if config.initial_values is True:
-    initial_values = True
+count = 0
 
 print("Creating initial population...")
 
 if (config.gen_mutation_coef > 1 or config.gen_mutation_coef < -1):
     sys.exit("Improper mutation coefficient in the config file")
 
-for _ in range(config.gen_population_size):
-    if initial_values is True:
-        k_p = config.initial_kp
-        k_i = config.initial_ki
-        initial_values = False
-        population.append(Creature(k_p, k_i))
-        continue
+if config.initial_values is True:
+    with open(initialvaluesfilename, "r", encoding="utf-8") as initial_values:
+        lines = initial_values.readlines()
+        no_of_lines = len(lines)
+        if no_of_lines > population_size:
+            sys.exit("Improper number of initial values")
 
+        for line in lines:
+            parts = line.strip().split(',')
+            if len(parts) == 2:
+                try:
+                    k_p = float(parts[0])
+                    k_i = float(parts[1])
+                    population.append(Creature(k_p, k_i))
+                    count = count + 1
+                except ValueError:
+                    print(f"Skipping invalid line: {line}")
+
+population_size = population_size - count
+
+for _ in range(population_size):
     if config.stability_verification is True:
         k_p,k_i = draw_stable_kp_ki()
         population.append(Creature(k_p,k_i))
@@ -209,14 +223,12 @@ print("Initial population created!")
 
 if config.debug_level != 1:
     for creature in population:
-        print("Creature", cntr)
-        print(creature.k_p)
-        print(creature.k_i)
+        print(f'Creature {cntr} k_p: {creature.k_p} k_i: {creature.k_i}')
         cntr = cntr + 1
 
 for epoch in range(config.gen_epochs):
     print("***************************************************************")
-    print("EPOCH NUMBER ", epoch)
+    print(f"EPOCH NUMBER {epoch}")
     print("***************************************************************")
 
     score = []
@@ -225,21 +237,19 @@ for epoch in range(config.gen_epochs):
     #Evaluate candidates
     i = 0
     for parent in population:
-        print("Evaluating creature number ", i)
         new_k_p = round(parent.k_p,3)
         new_k_i = round(parent.k_i,3)
         parent.mutate(new_k_p, new_k_i)
-        print("k_p: ", new_k_p)
-        print("k_i: ", new_k_i)
+        print(f'Epoch {epoch}: creature {i}, k_p {new_k_p:.3f},'\
+              f' k_i {new_k_i:.3f} ', end="", flush=True)
         parent.evaluate_data(args.i, args.t)
         score.append(parent.rating)
-        string = str(epoch) + "," + str(i) + "," + str(parent.k_p) + "," + \
-                 str(parent.k_i) + "," + str(parent.rating) + "\n"
         with open(csvfilename, "a", encoding="utf-8") as csvfile:
-            csvfile.write(string)
+            csvfile.write(f"{epoch},{i},{parent.k_p},{parent.k_i},{parent.rating}\n")
         i = i + 1
 
-    print("Score:  ", score)
+    if config.debug_level == 2:
+        print(f"Score:  {score}")
 
     #Select candidates fo new generation
     sorted_scores_indexes = numpy.argsort(score)
@@ -249,38 +259,42 @@ for epoch in range(config.gen_epochs):
 
     with open(logfilename, "a", encoding="utf-8") as f:
         f.write(f"Epoch number: {epoch}\n")
-        f.write(f"k_p: {population[index].k_p} ")
-        f.write(f"k_i: {population[index].k_p} ")
-        f.write(f"Score: {score[index]}\n")
+        f.write(f"k_p: {population[index].k_p:.3f} ")
+        f.write(f"k_i: {population[index].k_p:.3f} ")
+        f.write(f"Score: {score[index]:.3f}\n")
         #Write all scores to the file
-        for i in range(0, len(score)):
-            f.write(f"k_p: {population[i].k_p} ")
-            f.write(f"k_i: {population[i].k_i} ")
-            f.write(f"Test {i} Score: {score[i]}\n")
-        os.chmod(logfilename, 0o600)
+        for i in range(len(score)):
+            f.write(f"Test {i}: k_p: {population[i].k_p:.3f} ")
+            f.write(f"k_i: {population[i].k_i:.3f} ")
+            f.write(f" Score: {score[i]:.3f}\n")
+        #os.chmod(logfilename, 0o600)
 
-    print("Sorted Scores indexes: ", sorted_scores_indexes)
+    if config.debug_level == 2:
+        print("Sorted Scores indexes: ", sorted_scores_indexes)
 
     #Create Elite
-    for i in range(0,config.gen_elite_size):
+    for i in range(config.gen_elite_size):
         index = sorted_scores_indexes[i]
         elite.append(population[index])
     elite.sort(key = lambda Creature: Creature.rating)
 
-    for i in range(0, len(elite)):
+    for i in range(len(elite)):
         if i is config.gen_elite_size:
             del elite[i:len(elite)]
             break
 
-    string = str(epoch) + "," + str(elite[0].k_p) + "," + str(elite[0].k_i) + "," + \
-             str(elite[0].rating) + "\n"
     with open(elitefilename, "a", encoding="utf-8") as elitefile:
-        elitefile.write(string)
+        elitefile.write(f"{epoch},{elite[0].k_p},{elite[0].k_i},{elite[0].rating}\n")
 
-    improvement = (elite[0].rating * 100)/default.rating
-    print("Best score ever improvement over default: " + str(improvement) + "%\n")
-    with open(logfilename, "a", encoding="utf-8") as f:
-        f.write(f"Best score ever improvement over default: {improvement}%\n")
+    print(f"Epoch {epoch}: Best score: {elite[0].rating} default {default.rating}")
+    if elite[0].rating > default.rating:
+        print(f"Result worse by {(elite[0].rating-default.rating)/default.rating:.1%}\n")
+        with open(logfilename, "a", encoding="utf-8") as f:
+            f.write(f"Result worse by {(elite[0].rating-default.rating)/default.rating:.1%}\n")
+    else:
+        print(f"Result better by {(default.rating-elite[0].rating)/default.rating:.1%}\n")
+        with open(logfilename, "a", encoding="utf-8") as f:
+            f.write(f"Result better by {(default.rating-elite[0].rating)/default.rating:.1%}\n")
 
     #Create new generation
     new_generation = []
@@ -291,9 +305,11 @@ for epoch in range(config.gen_epochs):
     for x in range(config.gen_num_inherited):
         y = x + 1
         for _ in range(config.gen_num_inherited - x - 1):
-            print(x, " + ", y)
+            if config.debug_level == 2:
+                print(x, " + ", y)
             if config.stability_verification:
-                print("Veryfing parent stability")
+                if config.debug_level == 2:
+                    print("Veryfing parent stability")
                 if (validate_stability(population[sorted_scores_indexes[x]].k_p,
                                        population[sorted_scores_indexes[y]].k_i)):
                     new_generation.append(Creature(population[sorted_scores_indexes[x]].k_p,
@@ -321,9 +337,7 @@ for epoch in range(config.gen_epochs):
     if config.debug_level != 1:
         cntr = 0
         for creature in new_generation:
-            print("New generation creature ", cntr)
-            print(creature.k_p)
-            print(creature.k_i)
+            print(f"New generation creature {cntr}, k_p: {creature.k_p}, k_i: {creature.k_i}")
             cntr = cntr + 1
 
     new_generation_size = len(new_generation)
@@ -340,9 +354,8 @@ for epoch in range(config.gen_epochs):
             if cntr2 < new_generation_size:
                 cntr2 = cntr2 + 1
                 continue
-            print("New generation creature ", cntr2)
-            print(creature.k_p)
-            print(creature.k_i)
+            print(f'New generation creature {cntr2} k_p: {creature.k_p:.3f}'\
+                  f' k_i: {creature.k_i:.3f}')
             cntr2 = cntr2 + 1
     new_generation_size = len(new_generation)
 
@@ -363,9 +376,8 @@ for epoch in range(config.gen_epochs):
             if cntr2 < new_generation_size:
                 cntr2 = cntr2 + 1
                 continue
-            print("New generation creature ", cntr2)
-            print(creature.k_p)
-            print(creature.k_i)
+            print(f'New generation creature {cntr2} k_p: {creature.k_p:.3f}'\
+                  f' k_i: {creature.k_i:.3f}')
             cntr2 = cntr2 + 1
 
     #Mutation
@@ -384,9 +396,8 @@ for epoch in range(config.gen_epochs):
     if config.debug_level != 1:
         cntr = 0
         for creature in new_generation:
-            print("New generation creature ", cntr)
-            print(creature.k_p)
-            print(creature.k_i)
+            print(f'New generation creature {cntr} k_p: {creature.k_p:.3f}'\
+                  f' k_i: {creature.k_i:.3f}')
             cntr = cntr + 1
 
     #Print information about progress
@@ -394,7 +405,7 @@ for epoch in range(config.gen_epochs):
     progress = number_of_creatures * (epoch + 1)
     epoch_progress = number_of_creatures * config.gen_epochs
     print("***************************************************************")
-    print("Progress: ", progress/epoch_progress * 100, "%")
+    print(f"Progress: {progress/epoch_progress:.1%}")
     print("***************************************************************")
 
     #Switching generations
@@ -403,6 +414,11 @@ for epoch in range(config.gen_epochs):
 with open(logfilename, "a", encoding="utf-8") as f:
     f.write("\n***************************************************************\n")
     f.write("Genetic algorithm best results:\n")
-    os.chmod(logfilename, 0o600)
+    #os.chmod(logfilename, 0o600)
     for creature in elite:
         f.write(f"k_p: {creature.k_p}, k_i: {creature.k_i}, Score: {creature.rating}\n")
+
+if config.graph_per_epoch:
+    graph_all(csvfilename)
+
+graph_elite(elitefilename)
