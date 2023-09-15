@@ -32,19 +32,31 @@ class Range():
 
 def validate_stability(p_term, i_term):
     """Function validating stability."""
-    eq1 = (((p_term + i_term)*(p_term + i_term)) < (4*i_term))
-    eq2 = 0 <= i_term <= 4
-    eq3 = 0 <= p_term <= 1
-    if eq1 and eq2 and eq3:
-        return True
-    return False
+    if config.stability_verification == "Complex":
+        eq1 = (((p_term + i_term)*(p_term + i_term)) < (4*i_term))
+        eq2 = 0 <= i_term <= 4
+        eq3 = 0 <= p_term <= 1
+        if eq1 and eq2 and eq3:
+            return True
+        return False
+    if config.stability_verification == "Real":
+        eq1 = ((2*p_term) < (4 - i_term))
+        eq2 = 0 <= i_term <= 4
+        eq3 = 0 <= p_term <= 2
+        if eq1 and eq2 and eq3:
+            return True
+        return False
 
 def draw_stable_kp_ki():
     """Function drawing stable k_p and k_i pair."""
     stable = False
+    if config.stability_verification == "Complex":
+        gen_max_kp_stable = config.gen_max_kp_stable_complex
+    else:
+        gen_max_kp_stable = config.gen_max_kp_stable_real
     while not stable:
-        p_term = round(random.uniform(0, config.gen_max_kp_stable), 3)
-        i_term = round(random.uniform(0, config.gen_max_ki_stable), 3)
+        p_term = random.uniform(0, gen_max_kp_stable)
+        i_term = random.uniform(0, config.gen_max_ki_stable)
         if validate_stability(p_term, i_term):
             stable = True
     return p_term, i_term
@@ -54,28 +66,47 @@ def redefine_kp_ki_to_stable(p_term, i_term):
     if validate_stability(p_term, i_term):
         return p_term,i_term
     stable = False
-    while not stable:
-        #Print stability related calculations to the file
-        if config.debug_level != 1:
-            with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
-                stabilityfile.write(f"{i_term};{p_term}\n")
-        if i_term < 1:
-            i_term = i_term + (1 - i_term) * config.reduction_determinant
-        if i_term > 1:
-            i_term = i_term - (i_term - 1) * config.reduction_determinant
-        if i_term == 0:
-            i_term = i_term + config.reduction_determinant
-        if p_term == 0:
-            p_term = p_term + config.reduction_determinant
-        p_term = p_term - config.reduction_determinant * p_term
-        i_term = round(i_term, 3)
-        p_term = round(p_term, 3)
-        if validate_stability(p_term, i_term):
-            stable = True
-    return p_term,i_term
+    if config.stability_verification == "Complex":
+        while not stable:
+            if config.debug_level != 1:
+                with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
+                    stabilityfile.write(f"{i_term};{p_term}\n")
+            if i_term < 1:
+                i_term = i_term + (1 - i_term) * config.reduction_determinant
+            if i_term > 1:
+                i_term = i_term - (i_term - 1) * config.reduction_determinant
+            if i_term == 0:
+                i_term = i_term + config.reduction_determinant
+            if p_term == 0:
+                p_term = p_term + config.reduction_determinant
+            p_term = p_term - (p_term * config.reduction_determinant)
+            i_term = round(i_term, 3)
+            p_term = round(p_term, 3)
+            if validate_stability(p_term, i_term):
+                stable = True
+        return p_term,i_term
+    if config.stability_verification == "Real":
+        while not stable:
+            if config.debug_level != 1:
+                with open(stabilityfilename, "a", encoding="utf-8") as stabilityfile:
+                    stabilityfile.write(f"{i_term};{p_term}\n")
+            i_term = i_term - (i_term * config.reduction_determinant)
+            p_term = p_term - (p_term * config.reduction_determinant)
+            if i_term <= 0:
+                i_term = i_term + config.reduction_determinant
+            if p_term <= 0:
+                p_term = p_term + config.reduction_determinant
+            i_term = round(i_term, 3)
+            p_term = round(p_term, 3)
+            if validate_stability(p_term, i_term):
+                stable = True
+        return p_term,i_term
 
 if config.metric not in {"MSE", "RMSE", "MAE"}:
     print("Specify one of the following metrics: MSE, RMSE, MAE")
+    sys.exit()
+if config.stability_verification not in {"Complex", "Real", "False"}:
+    print("Specify one of the following options for stability verification: Complex, Real, False")
     sys.exit()
 if config.gen_population_size < 8:
     print("Min population size: 8")
