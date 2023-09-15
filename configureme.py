@@ -7,6 +7,8 @@ app = "phc2sys"
 metric = "MSE"
 # Fixed Kp, Ki values from initial_values.csv
 initial_values = False
+# If true, a graph for each epoch is generated
+graph_per_epoch = False
 
 ### Servo stability verification
 # Stability verification
@@ -23,7 +25,7 @@ reduction_determinant = 0.001
 # Initial population size
 gen_population_size = 8
 # Number of epochs
-gen_epochs = 8
+gen_epochs = 2
 # Max value that is considered for Kp
 # Ignored when stability_verification is set to True
 gen_max_kp = 5

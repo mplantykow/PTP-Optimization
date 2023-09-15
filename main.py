@@ -15,6 +15,8 @@ import time
 import numpy
 import configureme as config
 from evaluate import Creature
+from create_graph import graph_elite
+from create_graph import graph_all
 
 class Range():
     """Class providing range"""
@@ -384,3 +386,8 @@ with open(logfilename, "a", encoding="utf-8") as f:
     #os.chmod(logfilename, 0o600)
     for creature in elite:
         f.write(f"k_p: {creature.k_p}, k_i: {creature.k_i}, Score: {creature.rating}\n")
+
+if config.graph_per_epoch:
+    graph_all(csvfilename)
+
+graph_elite(elitefilename)
