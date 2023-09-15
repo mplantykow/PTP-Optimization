@@ -5,7 +5,6 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     https://spdx.org/licenses/GPL-2.0-or-later.html
-
 """GA for PID in PTP."""
 
 import subprocess #nosec
@@ -14,6 +13,7 @@ import sys
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 import configureme as config
+import testptp4l
 
 Rating_table = []
 Checked_data = []
@@ -49,9 +49,7 @@ class Creature():
                         split(f'./test-phc2sys.sh -s {interface} -c CLOCK_REALTIME'\
                                 f' -P {self.k_p} -I {self.k_i} -t {time}'))
             elif config.app == "ptp4l":
-                subprocess.check_call(
-                        split(f'./test-ptp4l.sh -i {interface} -P {self.k_p}'\
-                                f' -I {self.k_i} -t {time}'))
+                testptp4l.run_ptp_test(interface, P=self.k_p, I=self.k_i, timeout=time)
         except subprocess.SubprocessError:
             if config.app == "phc2sys":
                 print("Error calling phc2sys")
