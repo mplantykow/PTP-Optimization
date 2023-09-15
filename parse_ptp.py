@@ -19,9 +19,11 @@ from matplotlib import pyplot as plt
 def parse_ptp4l_out(line):
     """Parse ptp4l logs"""
     # journalctl -u ptp4l.service
-    # pattern = '^(.+)ptp4l\[[0-9]+\]: \[(.+)\] master offset\s+(-?[0-9]+) s([0123]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
+    # pattern = r'^(.+)ptp4l\[[0-9]+\]: \[(.+)\] master offset\s+(-?[0-9]+)'\
+    #           r' s([0123]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
     # standard ptp4l.log
-    pattern = r'^ptp4l\[(\d+).(\d+)\]: master offset\s+(-?[0-9]+) s([0123]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
+    pattern = r'^ptp4l\[(\d+).(\d+)\]: master offset\s+(-?[0-9]+) s([0123])'\
+              r' freq\s+([+-]\d+) path delay\s+(-?\d+)$'
     # https://regexr.com/
 
     # Regex search
@@ -45,10 +47,12 @@ def parse_ptp4l_out(line):
 def parse_phc2sys_out(line):
     """Parse phc2sys logs"""
     # journalctl -u ptp4l.service
-    # pattern = '^(.+)ptp4l\[[0-9]+\]: \[(.+)\] master offset\s+(-?[0-9]+) s([012]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
+    # pattern = r'^(.+)ptp4l\[[0-9]+\]: \[(.+)\] master offset\s+(-?[0-9]+)'\
+    #           r's([012]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
     # standard phc2sys.log:
     # phc2sys[689991.253]: CLOCK_REALTIME phc offset        33 s2 freq   -5355 delay    603
-    pattern = '^phc2sys\[(\d+).(\d+)\]:\s+(\S+)\s+(\S+) offset\s+(-?[0-9]+) s([0123]) freq\s+([+-]\d+) delay\s+(-?\d+)'
+    pattern = r'^phc2sys\[(\d+).(\d+)\]:\s+(\S+)\s+(\S+) offset\s+(-?[0-9]+)'\
+              r' s([0123]) freq\s+([+-]\d+) delay\s+(-?\d+)'
     # https://regexr.com/
 
     # Regex search
@@ -118,7 +122,8 @@ def plot(result_array):
     figure.set_figwidth(15)
     plt.savefig("test.png")
 
-    # the histogram of the data https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.hist.html
+    # the histogram of the data
+    # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.hist.html
     #plt.hist(array[:,3], 30, density=1, facecolor='g', alpha=0.75)
     #
     #plt.ylabel('Probability')
@@ -186,13 +191,15 @@ def parse_file(filename, normalize=0):
 
 def unit_test():
     """Run unit-test for parsing functions"""
-    test_string = 'ptp4l[145810.411]: master offset        -24 s2 freq     -27 path delay       642'
+    test_string = 'ptp4l[145810.411]: master offset        -24' \
+                  ' s2 freq     -27 path delay       642'
     print("parse_ptp4l_out:")
     result = parse_ptp4l_out(test_string)
     print(test_string)
     print(result)
 
-    test_string = 'phc2sys[689991.253]: CLOCK_REALTIME phc offset        33 s2 freq   -5355 delay    603'
+    test_string = 'phc2sys[689991.253]: CLOCK_REALTIME phc offset        33 s2'\
+                  ' freq   -5355 delay    603'
     print("parse_phc2sys_out:")
     result = parse_phc2sys_out(test_string)
     print(test_string)
