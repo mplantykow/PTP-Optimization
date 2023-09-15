@@ -213,8 +213,9 @@ for epoch in range(config.gen_epochs):
         print(f'Epoch {epoch}: creature {i}, k_p {new_k_p:.3f},'\
               f' k_i {new_k_i:.3f} ', end="", flush=True)
         parent.evaluate_data(args.i, args.t)
-        shutil.move(f"{config.app}_P{parent.k_p}_I{parent.k_i}",
-                    f"{result_path}/{config.app}_P{parent.k_p}_I{parent.k_i}")
+        if os.path.isdir(f"{config.app}_P{parent.k_p}_I{parent.k_i}"):
+            shutil.move(f"{config.app}_P{parent.k_p}_I{parent.k_i}",
+                        f"{result_path}/{config.app}_P{parent.k_p}_I{parent.k_i}")
         score.append(parent.rating)
         with open(csvfilename, "a", encoding="utf-8") as csvfile:
             csvfile.write(f"{epoch},{i},{parent.k_p},{parent.k_i},{parent.rating}\n")
