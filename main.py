@@ -10,6 +10,7 @@
 import sys
 import random
 import os
+import shutil
 import argparse
 import time
 import numpy
@@ -116,12 +117,13 @@ args = parser.parse_args()
 
 #Pull date and time to use as log filename
 timestr = time.strftime("%Y%m%d-%H%M%S")
-
+result_path = f'./{config.app}_{timestr}'
 #Define filenames
-csvfilename = f'{config.app}_{timestr}.csv'
-logfilename = f'{config.app}_{timestr}.log'
-elitefilename = f'{config.app}_{timestr}_elite.csv'
-stabilityfilename = f'{config.app}_{timestr}_stability.log'
+os.makedirs(result_path, exist_ok=True)
+csvfilename = f'{result_path}/{config.app}.csv'
+logfilename = f'{result_path}/{config.app}.log'
+elitefilename = f'{result_path}/{config.app}_elite.csv'
+stabilityfilename = f'{result_path}/{config.app}_stability.log'
 initialvaluesfilename = "initial_values.csv"
 
 #Add header to csvfilename
@@ -136,6 +138,7 @@ with open(elitefilename, "a", encoding="utf-8") as elitefile:
 print("Measuring result with default settings...")
 default = Creature(0.7,0.3)
 default.evaluate_data(args.i, args.t)
+shutil.move(f"{config.app}_P0.7_I0.3", f"{result_path}/{config.app}_P0.7_I0.3")
 print(f"Default k_p: {default.k_p} default k_i: {default.k_i} Score: {default.rating}\n")
 
 with open(logfilename, "a", encoding="utf-8") as f:
@@ -210,6 +213,8 @@ for epoch in range(config.gen_epochs):
         print(f'Epoch {epoch}: creature {i}, k_p {new_k_p:.3f},'\
               f' k_i {new_k_i:.3f} ', end="", flush=True)
         parent.evaluate_data(args.i, args.t)
+        shutil.move(f"{config.app}_P{parent.k_p}_I{parent.k_i}",
+                    f"{result_path}/{config.app}_P{parent.k_p}_I{parent.k_i}")
         score.append(parent.rating)
         with open(csvfilename, "a", encoding="utf-8") as csvfile:
             csvfile.write(f"{epoch},{i},{parent.k_p},{parent.k_i},{parent.rating}\n")
