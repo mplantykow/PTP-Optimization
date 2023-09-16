@@ -2,9 +2,9 @@
 # Debug level: 1 for basic, 2 for full logging
 debug_level = 1
 # Application: ptp4l, phc2sys
-app = "phc2sys"
+app = "ptp4l"
 # Metric: MSE, RMSE, MAE
-metric = "MSE"
+metric = "RMSE"
 # Fixed Kp, Ki values from initial_values.csv
 initial_values = False
 # If true, a graph for each epoch is generated
@@ -27,7 +27,7 @@ reduction_determinant = 0.001
 # Initial population size
 gen_population_size = 8
 # Number of epochs
-gen_epochs = 2
+gen_epochs = 8
 # Max value that is considered for Kp
 # Ignored when stability_verification is set to True
 gen_max_kp = 5
