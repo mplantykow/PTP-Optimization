@@ -3,6 +3,7 @@ import matplotlib as plot
 import argparse
 
 def create_kp_ki_plot(kp, ki, numbers, filename, epoch, print_epoch):
+    plt.figure()
     plt.scatter(kp, ki)
     plt.ylabel("Ki")
     plt.xlabel("Kp")
@@ -31,6 +32,7 @@ def create_score_plot(numbers, scores, filename, epoch, print_epoch):
     plt.close()
 
 def graph_elite(filename):
+    plt.figure()
     with open(filename, "r") as file:
         lines = file.readlines()
         no_of_lines = len(lines)
@@ -68,6 +70,7 @@ def graph_elite(filename):
 
 
 def graph_all(filename):
+    plt.figure()
     with open(filename, "r") as file:
         lines = file.readlines()
         no_of_lines = len(lines)
