@@ -214,7 +214,7 @@ if config.initial_values is True:
 population_size = population_size - count
 
 for _ in range(population_size):
-    if config.stability_verification is True:
+    if config.stability_verification in {"Real", "Complex"}:
         k_p,k_i = draw_stable_kp_ki()
         population.append(Creature(k_p,k_i))
     else:
