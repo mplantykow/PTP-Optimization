@@ -1,16 +1,21 @@
+#!/usr/bin/python3
+"""Module providing plots of data gathered during the test."""
+import argparse
+import statistics as st
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as plot
-import argparse
 
-def create_kp_ki_plot(kp, ki, numbers, filename, epoch, print_epoch):
+def create_kp_ki_plot(k_p, k_i, numbers, filename, epoch, print_epoch):
+    """Function plotting kp/ki plot."""
     plt.figure()
-    plt.scatter(kp, ki)
+    plt.scatter(k_p, k_i)
     plt.ylabel("Ki")
     plt.xlabel("Kp")
 
     for i in range(len(numbers)):
-        x = kp[i]
-        y = ki[i]
+        x = k_p[i]
+        y = k_i[i]
         plt.text(x, y, f"{i}")
 
     if print_epoch:
@@ -20,6 +25,7 @@ def create_kp_ki_plot(kp, ki, numbers, filename, epoch, print_epoch):
     plt.close()
 
 def create_score_plot(numbers, scores, filename, epoch, print_epoch):
+    """Function plotting scores."""
     plt.plot(numbers, scores, color='green', linestyle='dashed', linewidth = 1,
              marker='o', markerfacecolor='blue', markersize=12)
     plt.ylabel("Score")
@@ -32,10 +38,10 @@ def create_score_plot(numbers, scores, filename, epoch, print_epoch):
     plt.close()
 
 def graph_elite(filename):
+    """Function plotting only elite points from all runs."""
     plt.figure()
-    with open(filename, "r") as file:
+    with open(filename, "r", encoding="utf-8") as file:
         lines = file.readlines()
-        no_of_lines = len(lines)
 
     kp_set = []
     ki_set = []
@@ -70,8 +76,9 @@ def graph_elite(filename):
 
 
 def graph_all(filename):
+    """Function plotting all data."""
     plt.figure()
-    with open(filename, "r") as file:
+    with open(filename, "r", encoding="utf-8") as file:
         lines = file.readlines()
         no_of_lines = len(lines)
 
@@ -119,6 +126,24 @@ def graph_all(filename):
         filename = filename.replace(".csv", "")
         create_kp_ki_plot(kp_set, ki_set, numbers_set, filename, epoch, True)
         create_score_plot(numbers_set, scores_set, filename, epoch, True)
+
+def create_scatter_plot(input_filename, plot_filename):
+    """Function creating scatter plot of the data."""
+    # Load the CSV file into a DataFrame
+    df = pd.read_csv(input_filename)
+
+    # Create a scatter plot
+    plt.scatter(df['k_i'], df['k_p'], c=df['rating'], cmap=plot.cm.plasma_r)
+    plt.colorbar(label='MSE')
+    plt.clim(min(df['rating']),
+             (st.median(df['rating']) + (st.median(df['rating']) - min(df['rating']))))
+
+    # Add labels and a title
+    plt.xlabel('k_i')
+    plt.ylabel('k_p')
+
+    # Save the plot to the result filename
+    plt.savefig(plot_filename)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Stability Graph Script")
