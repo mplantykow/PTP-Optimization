@@ -4,7 +4,7 @@ debug_level = 1
 # Application: ptp4l, phc2sys
 app = "ptp4l"
 # Metric: MSE, RMSE, MAE
-metric = "RMSE"
+metric = "MAE"
 # Fixed Kp, Ki values from initial_values.csv
 initial_values = False
 # If true, a graph for each epoch is generated

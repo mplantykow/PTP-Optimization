@@ -1,11 +1,12 @@
 #!/usr/bin/python3
-"""Module providing GA for PTP PI controller."""
 # Copyright (c) 2021 Intel
+# Copyright (C) 2023 Milena Olech <milena.olech(at)intel.com>
 # Copyright (C) 2023 Maciek Machnikowski <maciek(at)machnikowski.net>
 # Licensed under the GNU General Public License v2.0 or later (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     https://spdx.org/licenses/GPL-2.0-or-later.html
+"""Module providing GA for PTP PI controller."""
 
 import sys
 import random
