@@ -144,6 +144,7 @@ def rate_data_mae(data):
     array1 = list(map(float, arr))
     array2 = list(map(int, data))
     mae = mean_absolute_error(array1, array2)
+    mae = round(mae,3)
     print(f"MAE: {mae:.3f}")
 
     return mae
