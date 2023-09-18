@@ -18,6 +18,7 @@ import configureme as config
 from evaluate import Creature
 from create_graph import graph_elite
 from create_graph import graph_all
+from create_graph import create_scatter_plot
 
 class Range():
     """Class providing range"""
@@ -47,6 +48,7 @@ def validate_stability(p_term, i_term):
         if eq1 and eq2 and eq3:
             return True
         return False
+    return True
 
 def draw_stable_kp_ki():
     """Function drawing stable k_p and k_i pair."""
@@ -102,6 +104,7 @@ def redefine_kp_ki_to_stable(p_term, i_term):
             if validate_stability(p_term, i_term):
                 stable = True
         return p_term,i_term
+    return p_term,i_term
 
 if config.metric not in {"MSE", "RMSE", "MAE"}:
     print("Specify one of the following metrics: MSE, RMSE, MAE")
@@ -428,3 +431,4 @@ if config.graph_per_epoch:
     graph_all(csvfilename)
 
 graph_elite(elitefilename)
+create_scatter_plot(csvfilename, "scatter_plot.png")
