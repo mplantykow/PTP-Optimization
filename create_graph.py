@@ -135,6 +135,7 @@ def graph_all(filename):
 
 def create_scatter_plot(input_filename, plot_filename):
     """Function creating scatter plot of the data."""
+    plt.figure()
     # Load the CSV file into a DataFrame
     df = pd.read_csv(input_filename)
 
