@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # Copyright (c) 2021 Intel
 # Copyright (C) 2023 Milena Olech <milena.olech(at)intel.com>
+# Copyright (C) 2023 Marta Plantykow <m.plantykow(at)gmail.com>
 # Copyright (C) 2023 Maciek Machnikowski <maciek(at)machnikowski.net>
 # Licensed under the GNU General Public License v2.0 or later (the "License");
 # you may not use this file except in compliance with the License.
