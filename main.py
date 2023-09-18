@@ -141,6 +141,10 @@ if config.gen_mutation_coef < 1:
 if config.gen_elite_size < 0:
     print("Elite size must be greater or equal 0")
     sys.exit()
+if config.test_repeted_creatures not in {True, False}:
+    print("Specify one of the following options for testing repeated creatures: True, False")
+    sys.exit()
+
 
 #Validate interface
 adapterlist = os.listdir('/sys/class/net/')
@@ -251,9 +255,15 @@ for epoch in range(config.gen_epochs):
         print(f'Epoch {epoch}: creature {i}, k_p {new_k_p:.3f},'\
               f' k_i {new_k_i:.3f} ', end="", flush=True)
         parent.evaluate_data(args.i, args.t)
-        if os.path.isdir(f"{config.app}_P{parent.k_p}_I{parent.k_i}"):
-            shutil.move(f"{config.app}_P{parent.k_p}_I{parent.k_i}",
-                        f"{result_path}/{config.app}_P{parent.k_p}_I{parent.k_i}")
+        if config.test_repeted_creatures is False:
+            if os.path.isdir(f"{config.app}_P{parent.k_p}_I{parent.k_i}"):
+                shutil.move(f"{config.app}_P{parent.k_p}_I{parent.k_i}",
+                            f"{result_path}/{config.app}_P{parent.k_p}_I{parent.k_i}")
+        else:
+            if os.path.isdir(f"{config.app}_P{parent.k_p}_I{parent.k_i}"):
+                shutil.move(f"{config.app}_P{parent.k_p}_I{parent.k_i}",
+                            f"{result_path}/{config.app}_P{parent.k_p}_I{parent.k_i}_Epoch{epoch}_Creature{i}")
+
         score.append(parent.rating)
         with open(csvfilename, "a", encoding="utf-8") as csvfile:
             csvfile.write(f"{epoch},{i},{parent.k_p},{parent.k_i},{parent.rating}\n")

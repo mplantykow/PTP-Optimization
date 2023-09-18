@@ -44,5 +44,7 @@ gen_num_replicated = 4
 gen_mutation_coef = 1
 # Number of elite chromosomes
 gen_elite_size = 1
+# Set to True to retest repeated creatures or False to assign previous result
+test_repeted_creatures = False
 
 # [1] Measurement, Control and Communication Using IEEE 1588

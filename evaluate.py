@@ -38,12 +38,15 @@ class Creature():
 
     def evaluate_data(self, interface, time):
         """Function evaluationg data."""
-        #Check if provided k_p and k_i are not repeated
-        repeated_data = self.validate_data()
-        if repeated_data:
-            print("Evaluate.py: Repeated data!")
-            self.rating = Rating_table[repeated_data - 1]
-            return
+        #Check if a creature with provided k_p and k_i was already tested
+        #If test_repeated_creatures is set to True test it again.
+        #If test_repeated_creatures is set to False assign previous result
+        if config.test_repeted_creatures is False:
+            repeated_data = self.validate_data()
+            if repeated_data:
+                print("Evaluate.py: Repeated data!")
+                self.rating = Rating_table[repeated_data - 1]
+                return
 
         try:
             if config.app == "phc2sys":
