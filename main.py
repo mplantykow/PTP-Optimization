@@ -443,4 +443,4 @@ if config.graph_per_epoch:
     graph_all(csvfilename)
 
 graph_elite(elitefilename)
-create_scatter_plot(csvfilename, f"{result_path}/scatter_plot.png")
+create_scatter_plot(csvfilename, f"{result_path}/scatter_plot.png", config.metric)

@@ -133,7 +133,7 @@ def graph_all(filename):
         create_kp_ki_plot(kp_set, ki_set, numbers_set, filename, epoch, True)
         create_score_plot(numbers_set, scores_set, filename, epoch, True)
 
-def create_scatter_plot(input_filename, plot_filename):
+def create_scatter_plot(input_filename, plot_filename, metric='Metric'):
     """Function creating scatter plot of the data."""
     plt.figure()
     # Load the CSV file into a DataFrame
@@ -141,7 +141,7 @@ def create_scatter_plot(input_filename, plot_filename):
 
     # Create a scatter plot
     plt.scatter(df['k_i'], df['k_p'], c=df['rating'], cmap=plot.cm.plasma_r)
-    plt.colorbar(label='MSE')
+    plt.colorbar(label=metric)
     plt.clim(min(df['rating']),
              (st.median(df['rating']) + (st.median(df['rating']) - min(df['rating']))))
 
