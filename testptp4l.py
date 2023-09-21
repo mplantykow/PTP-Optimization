@@ -12,6 +12,27 @@ import shutil
 import sys
 import parse_ptp as parse
 
+def get_phc_index(interface_name):
+    try:
+        # Run the ethtool command to get the PHC index
+        result = subprocess.check_output(['ethtool', '-T', interface_name],
+                                         stderr=subprocess.STDOUT,
+                                         universal_newlines=True)
+
+        # Parse the output to find the PHC index
+        lines = result.split('\n')
+        for line in lines:
+            if "PTP Hardware Clock:" in line:
+                parts = line.strip().split()
+                if len(parts) >= 4:
+                    return int(parts[3])
+
+        # If the PHC index is not found, return None
+        return None
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
+        return None
+
 def reset_ptp_clock(interface, reset_method="ptp4l"):
     """Reset the PTP clock."""
     # Check if the network interface exists
@@ -20,7 +41,7 @@ def reset_ptp_clock(interface, reset_method="ptp4l"):
         sys.exit(1)
 
     # Check if the network interface has PTP clocks
-    if not os.path.exists(f"/sys/class/net/{interface}/device/ptp"):
+    if get_phc_index(interface) is None:
         print("Adapter does not have any PTP clocks")
         sys.exit(1)
 
